@@ -15,8 +15,8 @@
     "@ant-design/icons": "^6.0.0",
     "@fal-ai/client": "^1.4.0",
     "@huggingface/inference": "^3.13.2",
-    "@react-three/drei": "^10.0.4",
-    "@react-three/fiber": "^9.1.0",
+    "@react-three/drei": "^9.103.0",
+    "@react-three/fiber": "^8.13.6",
     "@react-three/postprocessing": "^3.0.4",
     "@reduxjs/toolkit": "^1.8.2",
     "@testing-library/dom": "^10.4.0",
@@ -68,12 +68,17 @@
     ]
   },
   "devDependencies": {
-    "autoprefixer": "^10.4.7",
+    "autoprefixer": "^10.4.16",
     "nodemon": "^3.0.2",
-    "postcss": "^8.4.14",
-    "tailwindcss": "^3.1.2"
+    "postcss": "^8.4.31",
+    "tailwindcss": "^3.4.1"
   },
   "engines": {
     "node": ">=18.0.0"
+  },
+  "overrides": {
+    "postcss": "^8.4.31",
+    "nth-check": "^2.0.1",
+    "lodash.pick": "^4.4.0"
   }
 }

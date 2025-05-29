@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { FaUser, FaLock, FaEye, FaEyeSlash, FaGoogle, FaApple, FaFacebook, FaInstagram } from 'react-icons/fa';
 import { MdEmail } from 'react-icons/md';
