@@ -4,6 +4,8 @@ import Layout from '../components/Layout';
 import ReviewPopup from '../components/common/ReviewPopup';
 import OrdersPage from '../pages/OrdersPage';
 import { Modal } from 'antd';
+import {axios} from "axios";
+import env from '../config/env';
 import TakePhotoModal from '../components/TakePhotoModal';
 
 const MerchantPortalPage = ({ onLogout }) => {
@@ -259,9 +261,31 @@ const MerchantPortalPage = ({ onLogout }) => {
     setShowTakePhotoModal(true);
   }
 
-  const handlePhotoCapture = (photoDataUrl) => {
-    alert('Captured photo data URL:', photoDataUrl);
+  const handlePhotoCapture = async (photoDataUrl) => {
     console.log('Captured photo data URL:', photoDataUrl);
+
+    // Image to 3D model generate request into meshy.ai
+    const headers = { Authorization: `Bearer ${env.MESH_AI_API_KEY}` };
+    const payload = {
+      // Using data URI example
+      // image_url: 'data:image/png;base64,${YOUR_BASE64_ENCODED_IMAGE_DATA}',
+      image_url: photoDataUrl,
+      enable_pbr: true,
+      should_remesh: true,
+      should_texture: true
+    };
+
+    try {
+      const response = await axios.post(
+        'https://api.meshy.ai/openapi/v1/image-to-3d',
+        payload,
+        { headers }
+      );
+      console.log("The result 3D model response is: ", response.data);
+    } catch (error) {
+      console.error(error);
+    }
+
     setShowTakePhotoModal(false);
     setScanningInProgress(true);
     setScanProgress(0);
