@@ -4,7 +4,7 @@ import Layout from '../components/Layout';
 import ReviewPopup from '../components/common/ReviewPopup';
 import OrdersPage from '../pages/OrdersPage';
 import { Modal } from 'antd';
-import {axios} from "axios";
+import axios from "axios";
 // import env from '../config/env';
 import TakePhotoModal from '../components/TakePhotoModal';
 
