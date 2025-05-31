@@ -5,7 +5,7 @@ import ReviewPopup from '../components/common/ReviewPopup';
 import OrdersPage from '../pages/OrdersPage';
 import { Modal } from 'antd';
 import {axios} from "axios";
-import env from '../config/env';
+// import env from '../config/env';
 import TakePhotoModal from '../components/TakePhotoModal';
 
 const MerchantPortalPage = ({ onLogout }) => {
@@ -265,7 +265,7 @@ const MerchantPortalPage = ({ onLogout }) => {
     console.log('Captured photo data URL:', photoDataUrl);
 
     // Image to 3D model generate request into meshy.ai
-    const headers = { Authorization: `Bearer ${env.MESH_AI_API_KEY}` };
+    const headers = { Authorization: `Bearer ${process.env.MESH_AI_API_KEY}` };
     const payload = {
       // Using data URI example
       // image_url: 'data:image/png;base64,${YOUR_BASE64_ENCODED_IMAGE_DATA}',
