@@ -265,7 +265,7 @@ const MerchantPortalPage = ({ onLogout }) => {
     console.log('Captured photo data URL:', photoDataUrl);
 
     // Image to 3D model generate request into meshy.ai
-    const headers = { Authorization: `Bearer ${process.env.MESH_AI_API_KEY}` };
+    const headers = { Authorization: `Bearer ${process.env.NEXT_PUBLIC_MESH_AI_API_KEY}` };
     const payload = {
       // Using data URI example
       // image_url: 'data:image/png;base64,${YOUR_BASE64_ENCODED_IMAGE_DATA}',
