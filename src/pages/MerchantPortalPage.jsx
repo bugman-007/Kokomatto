@@ -261,6 +261,7 @@ const MerchantPortalPage = ({ onLogout }) => {
 
   const handlePhotoCapture = (photoDataUrl) => {
     alert('Captured photo data URL:', photoDataUrl);
+    console.log('Captured photo data URL:', photoDataUrl);
     setShowTakePhotoModal(false);
     setScanningInProgress(true);
     setScanProgress(0);
