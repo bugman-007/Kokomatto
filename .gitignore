@@ -1,30 +1,54 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# === Node modules ===
+node_modules/
+server/node_modules/
+src/node_modules/
 
-# dependencies
-node_modules
-/.pnp
-.pnp.js
+# === Build and output ===
+build/
+dist/
+.temp/
+.cache/
+.next/
+out/
 
-# testing
-/coverage
-
-# production
-# /build
-
-# misc
-.DS_Store
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
+# === Logs ===
+*.log
+logs/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# IDE specific files
-.idea
-.vscode
+# === OS and IDE files ===
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
 *.swp
 *.swo
+
+# === Env files and certs ===
+.env
+.env.*
+cert.pem
+key.pem
+csr.pem
+
+# === Dependency lock files (optional) ===
+# Uncomment to ignore lock files (not generally recommended)
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
+
+# === Test and coverage ===
+coverage/
+*.test.js
+*.spec.js
+
+# === Build tools ===
+postcss.config.js
+tailwind.config.js
+
+# === Misc ===
+*.tgz
+*.bak
+*.tmp

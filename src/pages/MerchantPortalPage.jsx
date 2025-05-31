@@ -4,6 +4,7 @@ import Layout from '../components/Layout';
 import ReviewPopup from '../components/common/ReviewPopup';
 import OrdersPage from '../pages/OrdersPage';
 import { Modal } from 'antd';
+import TakePhotoModal from '../components/TakePhotoModal';
 
 const MerchantPortalPage = ({ onLogout }) => {
   const navigate = useNavigate();
@@ -17,6 +18,7 @@ const MerchantPortalPage = ({ onLogout }) => {
   const [scanProgress, setScanProgress] = useState(0);
   const [isSettingsChatOpen, setIsSettingsChatOpen] = useState(false);
   const [isTrackingModalOpen, setIsTrackingModalOpen] = useState(false);
+  const [showTakePhotoModal, setShowTakePhotoModal] = useState(false);
   
   // Affiliate related states
   const [isAffiliateApproved, setIsAffiliateApproved] = useState(false);
@@ -254,6 +256,11 @@ const MerchantPortalPage = ({ onLogout }) => {
 
   // Handle product scanning
   const startProductScan = () => {
+    setShowTakePhotoModal(true);
+  }
+
+  const handlePhotoCapture = (photoDataUrl) => {
+    setShowTakePhotoModal(false);
     setScanningInProgress(true);
     setScanProgress(0);
     setScanComplete(false);
@@ -1949,6 +1956,12 @@ const MerchantPortalPage = ({ onLogout }) => {
           </div>
         </div>
       </div>
+
+      <TakePhotoModal
+        open={showTakePhotoModal}
+        onClose={() => setShowTakePhotoModal(false)}
+        onCapture={handlePhotoCapture}
+      />
 
       {/* Affiliate Signup Popup */}
       <Modal
