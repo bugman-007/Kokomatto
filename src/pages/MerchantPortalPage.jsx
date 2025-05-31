@@ -260,6 +260,7 @@ const MerchantPortalPage = ({ onLogout }) => {
   }
 
   const handlePhotoCapture = (photoDataUrl) => {
+    alert('Captured photo data URL:', photoDataUrl);
     setShowTakePhotoModal(false);
     setScanningInProgress(true);
     setScanProgress(0);
@@ -1961,6 +1962,7 @@ const MerchantPortalPage = ({ onLogout }) => {
         open={showTakePhotoModal}
         onClose={() => setShowTakePhotoModal(false)}
         onCapture={handlePhotoCapture}
+
       />
 
       {/* Affiliate Signup Popup */}
