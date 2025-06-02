@@ -51,10 +51,16 @@ const imageToModel = async (req, res) => {
     const payload = {
       type: "image_to_model",
       file: {
-        type: "jpg", // or 'png', based on input
+        type: 'jpg', // or 'png', based on input
         file_token: imageToken,
       },
     };
+
+    // const payload = {
+    //   task_type: "text_to_model",
+    //   prompt: "A small cat",
+    // };
+
 
     const response = await axios.post(TRIPO_API_URL, payload, {
       headers: {
