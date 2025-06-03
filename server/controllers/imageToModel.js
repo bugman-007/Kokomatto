@@ -29,6 +29,7 @@ const imageToModel = async (req, res) => {
     if (!image_url) {
       return res.status(400).json({ error: "No image_url provided" });
     }
+    console.log("req.body correctly working");
 
     // Step 1: Start preview task
     const previewPayload = {
@@ -41,6 +42,8 @@ const imageToModel = async (req, res) => {
       should_remesh: true,
       should_texture: true,
     };
+
+    console.log("previewPayload correctly working");
 
     const previewRes = await axios.post(MESHY_API_URL, previewPayload, {
       headers: {
