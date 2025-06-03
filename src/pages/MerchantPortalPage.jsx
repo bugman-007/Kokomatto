@@ -5,9 +5,9 @@ import ReviewPopup from "../components/common/ReviewPopup";
 import OrdersPage from "../pages/OrdersPage";
 import { Modal } from "antd";
 import axios from "axios";
-// import env from '../config/env';
 import TakePhotoModal from "../components/TakePhotoModal";
 import { SERVER_URL } from "../utils/constant";
+import GLBModelModal from "../components/GLBModelModal";
 
 const MerchantPortalPage = ({ onLogout }) => {
   const navigate = useNavigate();
@@ -22,6 +22,8 @@ const MerchantPortalPage = ({ onLogout }) => {
   const [isSettingsChatOpen, setIsSettingsChatOpen] = useState(false);
   const [isTrackingModalOpen, setIsTrackingModalOpen] = useState(false);
   const [showTakePhotoModal, setShowTakePhotoModal] = useState(false);
+  const [showGLBModal, setShowGLBModal] = useState(false);
+  const [glbUrl, setGlbUrl] = useState("");
 
   // Affiliate related states
   const [isAffiliateApproved, setIsAffiliateApproved] = useState(false);
@@ -356,41 +358,49 @@ const MerchantPortalPage = ({ onLogout }) => {
   };
 
   const handlePhotoCapture = async (photoDataUrl) => {
-    console.log("Captured photo data URL:", photoDataUrl);
-
-    // Image to 3D model generate request into meshy.ai
-    const payload = {
-      // image_url: 'data:image/png;base64,${YOUR_BASE64_ENCODED_IMAGE_DATA}',
-      image_url: photoDataUrl,
-    };
-
-    axios
-      .post(`${SERVER_URL}/api/imagetomodel`, payload)
-      .then((res) => {
-        console.log("Image to model response:", res.data);
-      });
-
+    // console.log("Captured photo data URL:", photoDataUrl);
     setShowTakePhotoModal(false);
     setScanningInProgress(true);
     setScanProgress(0);
     setScanComplete(false);
 
-    // Simulate scanning progress
-    const interval = setInterval(() => {
-      setScanProgress((prev) => {
-        const newProgress = prev + Math.floor(Math.random() * 10) + 3;
-        if (newProgress >= 100) {
-          clearInterval(interval);
-          setTimeout(() => {
-            setScanningInProgress(false);
-            setScanComplete(true);
-            setShowReviewPopup(true);
-          }, 1000);
-          return 100;
-        }
-        return newProgress;
+    try {
+      const payload = { image_url: photoDataUrl };
+      const res = await axios.post(`${SERVER_URL}/api/imagetomodel`, payload);
+      // Assume backend returns { glb_url: "https://..." }
+      if (res.data && res.data.glb_url) {
+        setGlbUrl(res.data.glb_url);
+        setShowGLBModal(true);
+      }
+    } catch (err) {
+      Modal.error({
+        title: "3D Model Generation Failed",
+        content: err.message,
       });
-    }, 300);
+    } finally {
+      setScanningInProgress(false);
+      setScanProgress(100);
+      setScanComplete(true);
+      setTimeout(() => setShowReviewPopup(true), 1000);
+    }
+
+
+    // Simulate scanning progress
+    // const interval = setInterval(() => {
+    //   setScanProgress((prev) => {
+    //     const newProgress = prev + Math.floor(Math.random() * 10) + 3;
+    //     if (newProgress >= 100) {
+    //       clearInterval(interval);
+    //       setTimeout(() => {
+    //         setScanningInProgress(false);
+    //         setScanComplete(true);
+    //         setShowReviewPopup(true);
+    //       }, 1000);
+    //       return 100;
+    //     }
+    //     return newProgress;
+    //   });
+    // }, 300);
   };
 
   // Handle review submission
@@ -1085,599 +1095,6 @@ const MerchantPortalPage = ({ onLogout }) => {
                 </div>
               </div>
             </div>
-          </div>
-        );
-      case "orders":
-        return <OrdersPage />;
-      case "affiliate":
-        return (
-          <div className="max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">
-            <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-              <div className="px-4 py-5 sm:p-6">
-                <h3 className="text-lg leading-6 font-medium text-gray-900">
-                  Affiliate Program
-                </h3>
-                <div className="mt-2 max-w-xl text-sm text-gray-500">
-                  <p>
-                    Earn commissions by referring customers to our virtual
-                    try-on solution.
-                  </p>
-                </div>
-                <div className="mt-5">
-                  <button
-                    type="button"
-                    onClick={() => navigateToTab("affiliate")}
-                    className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
-                  >
-                    Go to Affiliate Dashboard
-                  </button>
-                </div>
-
-                <div className="mt-8 border-t border-gray-200 pt-6">
-                  <h4 className="text-md font-medium text-gray-700">
-                    Affiliate Program Benefits
-                  </h4>
-                  <ul className="mt-4 space-y-4">
-                    <li className="flex items-start">
-                      <div className="flex-shrink-0">
-                        <svg
-                          className="h-5 w-5 text-green-500"
-                          xmlns="http://www.w3.org/2000/svg"
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                      </div>
-                      <div className="ml-3 text-sm text-gray-600">
-                        <p>
-                          Earn up to 20% commission on each successful referral
-                        </p>
-                      </div>
-                    </li>
-                    <li className="flex items-start">
-                      <div className="flex-shrink-0">
-                        <svg
-                          className="h-5 w-5 text-green-500"
-                          xmlns="http://www.w3.org/2000/svg"
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                      </div>
-                      <div className="ml-3 text-sm text-gray-600">
-                        <p>Access to marketing materials and affiliate links</p>
-                      </div>
-                    </li>
-                    <li className="flex items-start">
-                      <div className="flex-shrink-0">
-                        <svg
-                          className="h-5 w-5 text-green-500"
-                          xmlns="http://www.w3.org/2000/svg"
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                      </div>
-                      <div className="ml-3 text-sm text-gray-600">
-                        <p>
-                          Real-time tracking of clicks, conversions, and
-                          earnings
-                        </p>
-                      </div>
-                    </li>
-                    <li className="flex items-start">
-                      <div className="flex-shrink-0">
-                        <svg
-                          className="h-5 w-5 text-green-500"
-                          xmlns="http://www.w3.org/2000/svg"
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                      </div>
-                      <div className="ml-3 text-sm text-gray-600">
-                        <p>
-                          Monthly payouts via PayPal, bank transfer, or store
-                          credit
-                        </p>
-                      </div>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-
-      case "settings":
-        return (
-          <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-            <div className="px-4 py-5 sm:px-6">
-              <h3 className="text-lg leading-6 font-medium text-gray-900">
-                Account Settings
-              </h3>
-              <p className="mt-1 max-w-2xl text-sm text-gray-500">
-                Manage your merchant account profile and preferences.
-              </p>
-            </div>
-
-            <div className="border-t border-gray-200">
-              <div className="bg-gray-50 px-4 py-5 sm:px-6">
-                <h3 className="text-lg leading-6 font-medium text-gray-900">
-                  Profile Information
-                </h3>
-              </div>
-              <div className="border-t border-gray-200 px-4 py-5 sm:p-0">
-                <dl className="sm:divide-y sm:divide-gray-200">
-                  <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                    <dt className="text-sm font-medium text-gray-500">
-                      Company name
-                    </dt>
-                    <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2 flex items-center">
-                      <span className="flex-grow">Fashion Boutique</span>
-                      <button
-                        type="button"
-                        className="bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                      >
-                        Edit
-                      </button>
-                    </dd>
-                  </div>
-                  <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                    <dt className="text-sm font-medium text-gray-500">
-                      Email address
-                    </dt>
-                    <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2 flex items-center">
-                      <span className="flex-grow">merchant@example.com</span>
-                      <button
-                        type="button"
-                        className="bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                      >
-                        Edit
-                      </button>
-                    </dd>
-                  </div>
-                  <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                    <dt className="text-sm font-medium text-gray-500">
-                      Phone number
-                      <span className="ml-1 text-red-500">*</span>
-                    </dt>
-                    <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2 flex items-center">
-                      <span className="flex-grow">+1 (555) 987-6543</span>
-                      <button
-                        type="button"
-                        className="bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                      >
-                        Edit
-                      </button>
-                    </dd>
-                  </div>
-                  <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                    <dt className="text-sm font-medium text-gray-500">
-                      WhatsApp number
-                      <span className="ml-1 text-gray-400">(optional)</span>
-                    </dt>
-                    <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2 flex items-center">
-                      <span className="flex-grow text-gray-500 italic">
-                        Not provided
-                      </span>
-                      <button
-                        type="button"
-                        className="bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                      >
-                        Add
-                      </button>
-                    </dd>
-                  </div>
-                  <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                    <dt className="text-sm font-medium text-gray-500">
-                      Business address
-                    </dt>
-                    <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2 flex items-center">
-                      <span className="flex-grow">
-                        123 Fashion Street, Suite 101
-                        <br />
-                        New York, NY 10001
-                      </span>
-                      <button
-                        type="button"
-                        className="bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                      >
-                        Edit
-                      </button>
-                    </dd>
-                  </div>
-
-                  {/* VAT/Tax Code Field - NEW */}
-                  <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                    <dt className="text-sm font-medium text-gray-500">
-                      VAT number / Tax code
-                      <span className="ml-1 text-red-500">*</span>
-                    </dt>
-                    <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2 flex items-center">
-                      <span className="flex-grow">US123456789</span>
-                      <button
-                        type="button"
-                        className="bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                      >
-                        Edit
-                      </button>
-                    </dd>
-                  </div>
-                </dl>
-              </div>
-            </div>
-
-            <div className="border-t border-gray-200">
-              <div className="bg-gray-50 px-4 py-5 sm:px-6">
-                <h3 className="text-lg leading-6 font-medium text-gray-900">
-                  Store Settings
-                </h3>
-              </div>
-              <div className="border-t border-gray-200 px-4 py-5 sm:p-0">
-                <dl className="sm:divide-y sm:divide-gray-200">
-                  <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                    <dt className="text-sm font-medium text-gray-500">
-                      Default currency
-                    </dt>
-                    <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2 flex items-center">
-                      <span className="flex-grow">USD ($)</span>
-                      <select className="mt-1 block w-48 pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
-                        <option>USD ($)</option>
-                        <option>EUR (€)</option>
-                        <option>GBP (£)</option>
-                        <option>JPY (¥)</option>
-                        <option>CAD (C$)</option>
-                      </select>
-                    </dd>
-                  </div>
-
-                  {/* Customer Support Hours Settings */}
-                  <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                    <dt className="text-sm font-medium text-gray-500">
-                      Customer Support Hours
-                      <span className="ml-2 px-2 py-0.5 text-xs font-medium rounded-full bg-indigo-100 text-indigo-800">
-                        Medium & Premium
-                      </span>
-                    </dt>
-                    <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                      <div className="space-y-4">
-                        {/* Business Days */}
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Business Days
-                          </label>
-                          <div className="flex flex-wrap gap-2">
-                            {[
-                              "Monday",
-                              "Tuesday",
-                              "Wednesday",
-                              "Thursday",
-                              "Friday",
-                              "Saturday",
-                              "Sunday",
-                            ].map((day) => (
-                              <label
-                                key={day}
-                                className="inline-flex items-center"
-                              >
-                                <input
-                                  type="checkbox"
-                                  className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                                  defaultChecked={[
-                                    "Monday",
-                                    "Tuesday",
-                                    "Wednesday",
-                                    "Thursday",
-                                    "Friday",
-                                  ].includes(day)}
-                                />
-                                <span className="ml-2 text-sm text-gray-700">
-                                  {day}
-                                </span>
-                              </label>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Business Hours */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              Opening Time
-                            </label>
-                            <select className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
-                              {Array.from({ length: 24 }, (_, i) => (
-                                <option key={i} value={i} selected={i === 9}>
-                                  {i === 0
-                                    ? "12:00 AM"
-                                    : i < 12
-                                    ? `${i}:00 AM`
-                                    : i === 12
-                                    ? "12:00 PM"
-                                    : `${i - 12}:00 PM`}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              Closing Time
-                            </label>
-                            <select className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
-                              {Array.from({ length: 24 }, (_, i) => (
-                                <option key={i} value={i} selected={i === 17}>
-                                  {i === 0
-                                    ? "12:00 AM"
-                                    : i < 12
-                                    ? `${i}:00 AM`
-                                    : i === 12
-                                    ? "12:00 PM"
-                                    : `${i - 12}:00 PM`}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                        </div>
-
-                        {/* Time Zone */}
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Support Time Zone
-                          </label>
-                          <select className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
-                            <option>Eastern Time (ET) - (UTC-05:00)</option>
-                            <option>Central Time (CT) - (UTC-06:00)</option>
-                            <option>Mountain Time (MT) - (UTC-07:00)</option>
-                            <option>Pacific Time (PT) - (UTC-08:00)</option>
-                            <option>
-                              Greenwich Mean Time (GMT) - (UTC+00:00)
-                            </option>
-                            <option>
-                              Central European Time (CET) - (UTC+01:00)
-                            </option>
-                          </select>
-                        </div>
-
-                        {/* Lunch Break */}
-                        <div>
-                          <div className="flex items-center">
-                            <input
-                              id="lunch-break"
-                              type="checkbox"
-                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                              defaultChecked
-                            />
-                            <label
-                              htmlFor="lunch-break"
-                              className="ml-2 block text-sm font-medium text-gray-700"
-                            >
-                              Include Lunch Break
-                            </label>
-                          </div>
-
-                          <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-4 ml-6">
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Start Time
-                              </label>
-                              <select className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
-                                {Array.from({ length: 24 }, (_, i) => {
-                                  for (let j = 0; j < 4; j++) {
-                                    const minute = j * 15;
-                                    const value = `${i}:${minute
-                                      .toString()
-                                      .padStart(2, "0")}`;
-                                    const selected = i === 12 && minute === 0;
-                                    const label =
-                                      i === 0
-                                        ? `12:${minute
-                                            .toString()
-                                            .padStart(2, "0")} AM`
-                                        : i < 12
-                                        ? `${i}:${minute
-                                            .toString()
-                                            .padStart(2, "0")} AM`
-                                        : i === 12
-                                        ? `12:${minute
-                                            .toString()
-                                            .padStart(2, "0")} PM`
-                                        : `${i - 12}:${minute
-                                            .toString()
-                                            .padStart(2, "0")} PM`;
-                                    return (
-                                      <option
-                                        key={value}
-                                        value={value}
-                                        selected={selected}
-                                      >
-                                        {label}
-                                      </option>
-                                    );
-                                  }
-                                })}
-                              </select>
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">
-                                End Time
-                              </label>
-                              <select className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
-                                {Array.from({ length: 24 }, (_, i) => {
-                                  for (let j = 0; j < 4; j++) {
-                                    const minute = j * 15;
-                                    const value = `${i}:${minute
-                                      .toString()
-                                      .padStart(2, "0")}`;
-                                    const selected = i === 13 && minute === 0;
-                                    const label =
-                                      i === 0
-                                        ? `12:${minute
-                                            .toString()
-                                            .padStart(2, "0")} AM`
-                                        : i < 12
-                                        ? `${i}:${minute
-                                            .toString()
-                                            .padStart(2, "0")} AM`
-                                        : i === 12
-                                        ? `12:${minute
-                                            .toString()
-                                            .padStart(2, "0")} PM`
-                                        : `${i - 12}:${minute
-                                            .toString()
-                                            .padStart(2, "0")} PM`;
-                                    return (
-                                      <option
-                                        key={value}
-                                        value={value}
-                                        selected={selected}
-                                      >
-                                        {label}
-                                      </option>
-                                    );
-                                  }
-                                })}
-                              </select>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Auto-response Message */}
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            After-Hours Auto-Response Message
-                          </label>
-                          <textarea
-                            rows={3}
-                            className="block w-full rounded-md border border-gray-300 py-2 px-3 focus:border-indigo-500 focus:ring-indigo-500 text-sm"
-                            defaultValue="Thank you for your message. Our support team is currently unavailable. We will respond to your inquiry during our regular business hours. For urgent matters, please contact us at support@example.com."
-                          />
-                        </div>
-
-                        <div className="flex justify-end">
-                          <button
-                            type="button"
-                            className="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                          >
-                            Save Support Hours
-                          </button>
-                        </div>
-                      </div>
-                    </dd>
-                  </div>
-
-                  <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                    <dt className="text-sm font-medium text-gray-500">
-                      Language
-                    </dt>
-                    <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2 flex items-center">
-                      <span className="flex-grow">English (US)</span>
-                      <select className="mt-1 block w-48 pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
-                        <option>English (US)</option>
-                        <option>English (UK)</option>
-                        <option>Español</option>
-                        <option>Français</option>
-                        <option>Italiano</option>
-                        <option>Deutsche</option>
-                      </select>
-                    </dd>
-                  </div>
-
-                  <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                    <dt className="text-sm font-medium text-gray-500">
-                      Time zone
-                    </dt>
-                    <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2 flex items-center">
-                      <span className="flex-grow">
-                        Eastern Time (ET) - (UTC-05:00)
-                      </span>
-                      <select className="mt-1 block w-48 pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
-                        <option>Eastern Time (ET) - (UTC-05:00)</option>
-                        <option>Central Time (CT) - (UTC-06:00)</option>
-                        <option>Mountain Time (MT) - (UTC-07:00)</option>
-                        <option>Pacific Time (PT) - (UTC-08:00)</option>
-                      </select>
-                    </dd>
-                  </div>
-                </dl>
-              </div>
-            </div>
-
-            <div className="border-t border-gray-200">
-              <div className="bg-gray-50 px-4 py-5 sm:px-6">
-                <h3 className="text-lg leading-6 font-medium text-gray-900">
-                  Security Settings
-                </h3>
-              </div>
-              <div className="border-t border-gray-200 px-4 py-5 sm:p-0">
-                <dl className="sm:divide-y sm:divide-gray-200">
-                  <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                    <dt className="text-sm font-medium text-gray-500">
-                      Password
-                    </dt>
-                    <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2 flex items-center">
-                      <span className="flex-grow">••••••••••••</span>
-                      <button
-                        type="button"
-                        className="bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                      >
-                        Change password
-                      </button>
-                    </dd>
-                  </div>
-                  <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                    <dt className="text-sm font-medium text-gray-500">
-                      Two-factor authentication
-                    </dt>
-                    <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2 flex items-center">
-                      <span className="flex-grow">Enabled</span>
-                      <button
-                        type="button"
-                        className="bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                      >
-                        Manage
-                      </button>
-                    </dd>
-                  </div>
-                  <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                    <dt className="text-sm font-medium text-gray-500">
-                      API Key
-                    </dt>
-                    <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2 flex items-center">
-                      <span className="font-mono bg-gray-100 px-2 py-1 rounded break-all flex-grow">
-                        sk_test_5IGQvRnXG4AzX7JbOnpqE2Fl
-                      </span>
-                      <button
-                        type="button"
-                        className="ml-4 bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                      >
-                        Regenerate
-                      </button>
-                    </dd>
-                  </div>
-                </dl>
-              </div>
-            </div>
 
             <div className="border-t border-gray-200">
               <div className="bg-gray-50 px-4 py-5 sm:px-6">
@@ -1827,7 +1244,7 @@ const MerchantPortalPage = ({ onLogout }) => {
                         >
                           <svg
                             className="h-4 w-4 mr-2"
-                            xmlns="http://www.w3.org/2000/svg"
+                                                       xmlns="http://www.w3.org/2000/svg"
                             fill="none"
                             viewBox="0 0 24 24"
                             stroke="currentColor"
@@ -2021,7 +1438,7 @@ const MerchantPortalPage = ({ onLogout }) => {
                         <svg
                           className="absolute left-3 top-2.5 h-4 w-4 text-gray-400"
                           xmlns="http://www.w3.org/2000/svg"
-                          viewBox="0 0 20 20"
+                          viewBox="0 0 24 24"
                           fill="currentColor"
                         >
                           <path
@@ -2175,7 +1592,7 @@ const MerchantPortalPage = ({ onLogout }) => {
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
                                 strokeWidth={2}
-                                d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
+                                d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 012 0 1 1 0 110 2 1 1 0 01-2 0zm0 7a1 1 0 110-2 1 1 0 012 0 1 1 0 110 2 1 1 0 01-2 0zm0 7a1 1 0 110-2 1 1 0 012 0 1 1 0 110 2 1 1 0 01-2 0z"
                               />
                             </svg>
                           </button>
@@ -2757,7 +2174,7 @@ const MerchantPortalPage = ({ onLogout }) => {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={2}
-                    d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"
+                    d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 012 2h8"
                   />
                 </svg>
                 Billing
@@ -2978,6 +2395,11 @@ const MerchantPortalPage = ({ onLogout }) => {
           onSubmit={handleReviewSubmit}
         />
       )}
+      <GLBModelModal
+        open={showGLBModal}
+        onClose={() => setShowGLBModal(false)}
+        glbUrl={glbUrl}
+      />
     </Layout>
   );
 };
