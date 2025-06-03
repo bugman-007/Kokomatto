@@ -1,77 +1,89 @@
 const axios = require("axios");
-const FormData = require("form-data");
 
-const TRIPO_API_KEY = process.env.TRIPO_API_KEY;
-const TRIPO_API_URL = "https://api.tripo3d.ai/v2/openapi/task";
+const MESHY_API_KEY = process.env.MESHY_API_KEY;
+const MESHY_API_URL = "https://api.meshy.ai/openapi/v1/image-to-3d";
 
-async function uploadBase64Image(base64String) {
-  try {
-    const matches = base64String.match(/^data:(image\/\w+);base64,(.+)$/);
-    if (!matches || matches.length !== 3) {
-      throw new Error("Invalid Base64 image format");
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+async function pollTaskStatus(taskId) {
+  const headers = {
+    Authorization: `Bearer ${MESHY_API_KEY}`,
+  };
+
+  while (true) {
+    const res = await axios.get(`${MESHY_API_URL}/${taskId}`, { headers });
+    const task = res.data;
+
+    if (task.status === "SUCCEEDED") {
+      return task;
     }
 
-    const contentType = matches[1];
-    const base64Data = matches[2];
-    const buffer = Buffer.from(base64Data, "base64");
-
-    const form = new FormData();
-    form.append("file", buffer, {
-      filename: "upload.png",
-      contentType: contentType,
-    });
-
-    const response = await axios.post(TRIPO_API_URL, form, {
-      headers: {
-        ...form.getHeaders(),
-        Authorization: `Bearer ${TRIPO_API_KEY}`,
-      },
-    });
-
-    if (!response.data || !response.data.data || !response.data.data.image_token) {
-      throw new Error("Image token not found in Tripo3D response");
-    }
-
-    return response.data.data.image_token;
-  } catch (error) {
-    console.error("Upload Error:", error.response?.data || error.message);
-    throw error;
+    console.log(`Task ${taskId} status: ${task.status} | Progress: ${task.progress}`);
+    await sleep(5000);
   }
 }
 
 const imageToModel = async (req, res) => {
   try {
-    const image_url = req.body.image_url;
+    const {image_url} = req.body;
     if (!image_url) {
       return res.status(400).json({ error: "No image_url provided" });
     }
 
-    const imageToken = await uploadBase64Image(image_url);
-
-    const payload = {
-      type: "image_to_model",
-      file: {
-        type: 'jpg', // or 'png', based on input
-        file_token: imageToken,
-      },
+    // Step 1: Start preview task
+    const previewPayload = {
+      mode: "preview",
+      // prompt: "A small cat", // Optional: Modify or customize using image_url later
+      // negative_prompt: "low quality, low resolution, low poly, ugly",
+      // art_style: "realistic",
+      image_url: `${image_url}`,
+      enable_pbr: true,
+      should_remesh: true,
+      should_texture: true,
     };
 
-    // const payload = {
-    //   task_type: "text_to_model",
-    //   prompt: "A small cat",
-    // };
-
-
-    const response = await axios.post(TRIPO_API_URL, payload, {
+    const previewRes = await axios.post(MESHY_API_URL, previewPayload, {
       headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${TRIPO_API_KEY}`,
+        Authorization: `Bearer ${MESHY_API_KEY}`,
       },
     });
 
-    return res.status(200).json(response.data);
+    const previewTaskId = previewRes.data.result;
+    console.log("Preview Task ID:", previewTaskId);
+
+    // Step 2: Poll until preview is done
+    const previewTask = await pollTaskStatus(previewTaskId);
+    const previewModelUrl = previewTask.model_urls?.glb;
+
+    // Step 3: Start refinement
+    const refinePayload = {
+      mode: "refine",
+      image_url: `${image_url}`,
+      preview_task_id: previewTaskId,
+    };
+
+    const refineRes = await axios.post(MESHY_API_URL, refinePayload, {
+      headers: {
+        Authorization: `Bearer ${MESHY_API_KEY}`,
+      },
+    });
+
+    const refineTaskId = refineRes.data.result;
+    console.log("Refine Task ID:", refineTaskId);
+
+    // Step 4: Poll until refined model is ready
+    const refinedTask = await pollTaskStatus(refineTaskId);
+    const refinedModelUrl = refinedTask.model_urls?.glb;
+
+    console.log("Result Preview Model URL:", refinedModelUrl);
+    return res.status(200).json({
+      success: true,
+      preview_model_url: previewModelUrl,
+      refined_model_url: refinedModelUrl,
+    });
+
   } catch (error) {
-    console.error("imageToModel Error:", error.response?.data || error.message);
+    // console.error("imageToModel Error:", error.response?.data || error.message);
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
