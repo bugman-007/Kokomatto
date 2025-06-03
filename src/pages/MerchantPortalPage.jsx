@@ -369,6 +369,7 @@ const MerchantPortalPage = ({ onLogout }) => {
       const res = await axios.post(`${SERVER_URL}/api/imagetomodel`, payload);
       // Assume backend returns { glb_url: "https://..." }
       if (res.data && res.data.glb_url) {
+        console.log(res.data.glb_url);
         setGlbUrl(res.data.glb_url);
         setShowGLBModal(true);
       }
