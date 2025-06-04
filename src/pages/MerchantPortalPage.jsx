@@ -140,17 +140,25 @@ const MerchantPortalPage = ({ onLogout }) => {
 
   // Force reload when needed
   useEffect(() => {
-    // Listen for popstate events (browser back/forward buttons)
-    const handlePopState = () => {
-      // Force refresh on browser navigation
-      window.location.reload();
+    // Only handle actual navigation needs
+    const handlePopState = (event) => {
+      // if (/* some condition when you actually need a refresh */) {
+      // window.location.reload();
+      // }
     };
 
     window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
 
-    return () => {
-      window.removeEventListener("popstate", handlePopState);
-    };
+  useEffect(() => {
+    // Check if there's a model URL in state that needs to be shown
+    const savedModelUrl = sessionStorage.getItem("currentModelUrl");
+    if (savedModelUrl) {
+      setGlbUrl(savedModelUrl);
+      setShowGLBModal(true);
+      sessionStorage.removeItem("currentModelUrl");
+    }
   }, []);
 
   // Function to generate and download invoice PDF
@@ -358,7 +366,6 @@ const MerchantPortalPage = ({ onLogout }) => {
   };
 
   const handlePhotoCapture = async (photoDataUrl) => {
-    // console.log("Captured photo data URL:", photoDataUrl);
     setShowTakePhotoModal(false);
     setScanningInProgress(true);
     setScanProgress(0);
@@ -367,13 +374,11 @@ const MerchantPortalPage = ({ onLogout }) => {
     try {
       const payload = { image_url: photoDataUrl };
       const res = await axios.post(`${SERVER_URL}/api/imagetomodel`, payload);
-      // Assume backend returns { glb_url: "https://..." }
-      console.log(res.data);
       if (res.data && res.data.refined_model_url) {
-      // if (res.data && res.data.proxy_model_url) {
-        // console.log(res.data.proxy_model_url);
-        // setGlbUrl(res.data.proxy_model_url);
-        setGlbUrl(res.data.refined_model_url);
+        const modelUrl = res.data.refined_model_url;
+        setGlbUrl(modelUrl);
+        // Save to session storage in case of refresh
+        sessionStorage.setItem("currentModelUrl", modelUrl);
         setShowGLBModal(true);
       }
     } catch (err) {
@@ -382,28 +387,11 @@ const MerchantPortalPage = ({ onLogout }) => {
         content: err.message,
       });
     } finally {
-      setScanningInProgress(false);
-      setScanProgress(100);
-      setScanComplete(true);
-      setTimeout(() => setShowReviewPopup(true), 1000);
+      // setScanningInProgress(false);
+      // setScanProgress(100);
+      // setScanComplete(true);
+      // setTimeout(() => setShowReviewPopup(true), 1000);
     }
-
-    // Simulate scanning progress
-    // const interval = setInterval(() => {
-    //   setScanProgress((prev) => {
-    //     const newProgress = prev + Math.floor(Math.random() * 10) + 3;
-    //     if (newProgress >= 100) {
-    //       clearInterval(interval);
-    //       setTimeout(() => {
-    //         setScanningInProgress(false);
-    //         setScanComplete(true);
-    //         setShowReviewPopup(true);
-    //       }, 1000);
-    //       return 100;
-    //     }
-    //     return newProgress;
-    //   });
-    // }, 300);
   };
 
   // Handle review submission

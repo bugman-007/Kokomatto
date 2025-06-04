@@ -9,7 +9,7 @@ const GLBModelModal = ({ open, onClose, glbUrl }) => {
   const [ready, setReady] = useState(false); // flag to render after Modal is mounted
 
   useEffect(() => {
-    if (!glbUrl || !mountRef.current) return;
+    if (!glbUrl || !mountRef.current || !open) return;
 
     // Set up Three.js scene
     const scene = new THREE.Scene();
@@ -69,7 +69,7 @@ const GLBModelModal = ({ open, onClose, glbUrl }) => {
         }
       }
     };
-  }, [ready, glbUrl]);
+  }, [open, glbUrl]);
 
   return (
     <Modal

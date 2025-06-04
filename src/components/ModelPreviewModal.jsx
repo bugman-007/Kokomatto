@@ -7,6 +7,7 @@ import {
   useProgress,
   useGLTF,
 } from "@react-three/drei";
+import axios from "axios";
 import Modal from "react-modal";
 import { SERVER_URL } from "../utils/constant";
 
@@ -23,35 +24,34 @@ function Loader() {
   );
 }
 
-function Model({ url }) {
-  const gltf = useGLTF(url, true);
-  return <primitive object={gltf.scene} dispose={null} />;
-}
-
 export default function ModelPreviewModal({ isOpen, onClose, modelUrl }) {
-  const [localUrl, setLocalUrl] = useState(null);
+  const [localUrl, setLocalUrl] = useState(modelUrl);
 
-  useEffect(() => {
-    if (!modelUrl || !isOpen) return;
+  // useEffect(() => {
+  //   if (!modelUrl || !isOpen) return;
 
-    const downloadModel = async () => {
-      try {
-        const res = await fetch(`${SERVER_URL}/api/download-glb`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ url: modelUrl }),
-        });
-        const data = await res.json();
-        if (data.localUrl) {
-          setLocalUrl(`http://localhost:5000${data.localUrl}`);
-        }
-      } catch (err) {
-        console.error("Failed to download model:", err);
-      }
-    };
+    // const downloadModel = () => {
+    //     axios.post(`${SERVER_URL}/api/download-glb`, 
+    //       { url: modelUrl },
+    //     )
+    //     .then((res) => {
+    //     const {data} = res.json();
+    //     console.log( "Model download response:", data);
+    //     if (data.localUrl) {
+    //       setLocalUrl(`http://localhost:5000${data.localUrl}`);
+    //     }
+    //   }).catch ((err)=> {
+    //     console.error("Failed to download model:", err);
+    //   })
+    // };
 
-    downloadModel();
-  }, [modelUrl, isOpen]);
+    // downloadModel();
+  // }, [modelUrl, isOpen]);
+
+  const Model=({ url })=> {
+    const gltf = useGLTF(url, true);
+    return <primitive object={gltf.scene} dispose={null} />
+  }
 
   return (
     <Modal

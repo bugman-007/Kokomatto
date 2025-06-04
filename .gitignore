@@ -52,3 +52,6 @@ tailwind.config.js
 *.tgz
 *.bak
 *.tmp
+
+# ==== Public assets ====
+public/models/3dassets/*.glb

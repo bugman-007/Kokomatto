@@ -32,7 +32,7 @@ const downloadGLB = async (req, res) => {
     writer.on("finish", () => {
       res
         .status(200)
-        .json({ success: true, fileName, url: `/models/3dassets/${fileName}` });
+        .json({ success: true, fileName, localUrl: `/models/3dassets/${fileName}` });
     });
 
     writer.on("error", (err) => {

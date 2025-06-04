@@ -1,5 +1,6 @@
 const axios = require("axios");
-
+const path = require("path");
+const fs = require("fs");
 const MESHY_API_KEY = process.env.MESHY_API_KEY;
 const MESHY_API_URL = "https://api.meshy.ai/openapi/v1/image-to-3d";
 
@@ -76,12 +77,46 @@ const imageToModel = async (req, res) => {
     // Return proxy URL instead of raw Meshy URL to avoid CORS issues
     const proxyUrl = `/api/proxy-glb?url=${encodeURIComponent(refinedModelUrl)}`;
 
+    const response = await axios({
+          url: refinedModelUrl,
+          method: "GET",
+          responseType: "stream",
+        });
+    const fileName = `model-${Date.now()}.glb`;
+      const modelDir = path.resolve(__dirname, "../../public/models/3dassets");
+      const filePath = path.join(modelDir, fileName);
+  
+      // Ensure the directory exists
+      if (!fs.existsSync(modelDir)) {
+        fs.mkdirSync(modelDir, { recursive: true });
+      }
+  
+      const writer = fs.createWriteStream(filePath);
+      response.data.pipe(writer);
+  
+      writer.on("finish", () => {
+        
     return res.status(200).json({
       success: true,
       // proxy_model_url: proxyUrl,
       // preview_model_url: previewModelUrl,
-      refined_model_url: refinedModelUrl,
+      refined_model_url: `/models/3dassets/${fileName}`,
     });
+        // res
+        //   .status(200)
+        //   .json({ success: true, fileName, localUrl: `/models/3dassets/${fileName}` });
+      });
+  
+      writer.on("error", (err) => {
+        console.error(err);
+        res.status(500).json({ error: "Failed to save the GLB file" });
+      });
+    // return res.status(200).json({
+    //   success: true,
+    //   // proxy_model_url: proxyUrl,
+    //   // preview_model_url: previewModelUrl,
+    //   refined_model_url: refinedModelUrl,
+    // });
 
   } catch (error) {
     console.error("imageToModel Error:", error.response?.data || error.message);

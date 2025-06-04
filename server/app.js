@@ -20,6 +20,8 @@ app.get('/', (req, res) => {
   res.json({ status: 'healthy', message: 'Virtual Try-On API is running' });
 });
 
+app.use('/', express.static('public'));
+
 // Error handling
 app.use(errorHandler);
 
