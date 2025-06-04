@@ -7,7 +7,7 @@ import { Modal } from "antd";
 import axios from "axios";
 import TakePhotoModal from "../components/TakePhotoModal";
 import { SERVER_URL } from "../utils/constant";
-import GLBModelModal from "../components/GLBModelModal";
+import ModelPreviewModal from "../components/ModelPreviewModal";
 
 const MerchantPortalPage = ({ onLogout }) => {
   const navigate = useNavigate();
@@ -368,9 +368,12 @@ const MerchantPortalPage = ({ onLogout }) => {
       const payload = { image_url: photoDataUrl };
       const res = await axios.post(`${SERVER_URL}/api/imagetomodel`, payload);
       // Assume backend returns { glb_url: "https://..." }
-      if (res.data && res.data.glb_url) {
-        console.log(res.data.glb_url);
-        setGlbUrl(res.data.glb_url);
+      console.log(res.data);
+      if (res.data && res.data.refined_model_url) {
+      // if (res.data && res.data.proxy_model_url) {
+        // console.log(res.data.proxy_model_url);
+        // setGlbUrl(res.data.proxy_model_url);
+        setGlbUrl(res.data.refined_model_url);
         setShowGLBModal(true);
       }
     } catch (err) {
@@ -384,7 +387,6 @@ const MerchantPortalPage = ({ onLogout }) => {
       setScanComplete(true);
       setTimeout(() => setShowReviewPopup(true), 1000);
     }
-
 
     // Simulate scanning progress
     // const interval = setInterval(() => {
@@ -1245,7 +1247,7 @@ const MerchantPortalPage = ({ onLogout }) => {
                         >
                           <svg
                             className="h-4 w-4 mr-2"
-                                                       xmlns="http://www.w3.org/2000/svg"
+                            xmlns="http://www.w3.org/2000/svg"
                             fill="none"
                             viewBox="0 0 24 24"
                             stroke="currentColor"
@@ -2396,11 +2398,13 @@ const MerchantPortalPage = ({ onLogout }) => {
           onSubmit={handleReviewSubmit}
         />
       )}
-      <GLBModelModal
-        open={showGLBModal}
-        onClose={() => setShowGLBModal(false)}
-        glbUrl={glbUrl}
-      />
+      {showGLBModal && glbUrl !== "" && (
+        <ModelPreviewModal
+          isOpen={showGLBModal}
+          onClose={() => setShowGLBModal(false)}
+          modelUrl={glbUrl}
+        />
+      )}
     </Layout>
   );
 };

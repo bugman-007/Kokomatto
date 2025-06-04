@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { Modal } from "antd";
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
@@ -6,11 +6,12 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 
 const GLBModelModal = ({ open, onClose, glbUrl }) => {
   const mountRef = useRef();
+  const [ready, setReady] = useState(false); // flag to render after Modal is mounted
 
   useEffect(() => {
-    if (!open || !glbUrl) return;
+    if (!glbUrl || !mountRef.current) return;
 
-    // Scene setup
+    // Set up Three.js scene
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
     camera.position.set(0, 1, 3);
@@ -18,22 +19,31 @@ const GLBModelModal = ({ open, onClose, glbUrl }) => {
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setClearColor(0xffffff, 0);
     renderer.setSize(500, 500);
-
     mountRef.current.appendChild(renderer.domElement);
 
-    // Lighting
     const light = new THREE.HemisphereLight(0xffffff, 0x444444, 1.2);
     scene.add(light);
 
-    // Controls
     const controls = new OrbitControls(camera, renderer.domElement);
 
-    // Load GLB
     const loader = new GLTFLoader();
     loader.load(
       glbUrl,
       (gltf) => {
-        scene.add(gltf.scene);
+        const model = gltf.scene;
+
+        // Normalize the model: center and scale
+        const box = new THREE.Box3().setFromObject(model);
+        const size = new THREE.Vector3();
+        const center = new THREE.Vector3();
+        box.getSize(size);
+        box.getCenter(center);
+
+        model.position.sub(center); // center it
+        const scale = 1.5 / Math.max(size.x, size.y, size.z); // scale to fit
+        model.scale.setScalar(scale);
+
+        scene.add(model);
         animate();
       },
       undefined,
@@ -42,23 +52,24 @@ const GLBModelModal = ({ open, onClose, glbUrl }) => {
       }
     );
 
-    // Animate
     let frameId;
-    function animate() {
+    const animate = () => {
       frameId = requestAnimationFrame(animate);
       controls.update();
       renderer.render(scene, camera);
-    }
+    };
 
     // Cleanup
     return () => {
       cancelAnimationFrame(frameId);
       renderer.dispose();
-      while (mountRef.current.firstChild) {
-        mountRef.current.removeChild(mountRef.current.firstChild);
+      if (mountRef.current) {
+        while (mountRef.current.firstChild) {
+          mountRef.current.removeChild(mountRef.current.firstChild);
+        }
       }
     };
-  }, [open, glbUrl]);
+  }, [ready, glbUrl]);
 
   return (
     <Modal
@@ -69,6 +80,7 @@ const GLBModelModal = ({ open, onClose, glbUrl }) => {
       centered
       title="3D Model Preview"
       destroyOnClose
+      onAfterOpenChange={(openState) => setReady(openState)} // <-- critical hook
     >
       <div
         ref={mountRef}

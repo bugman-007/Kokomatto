@@ -23,74 +23,93 @@ async function pollTaskStatus(taskId) {
   }
 }
 
+// POST /api/imagetomodel
 const imageToModel = async (req, res) => {
   try {
-    const {image_url} = req.body;
+    const { image_url } = req.body;
     if (!image_url) {
       return res.status(400).json({ error: "No image_url provided" });
     }
-    console.log("req.body correctly working");
 
-    // Step 1: Start preview task
+    // Step 1: Submit image-to-3d task (preview mode)
     const previewPayload = {
       mode: "preview",
-      // prompt: "A small cat", // Optional: Modify or customize using image_url later
-      // negative_prompt: "low quality, low resolution, low poly, ugly",
-      // art_style: "realistic",
-      image_url: `${image_url}`,
+      image_url: image_url,
       enable_pbr: true,
       should_remesh: true,
       should_texture: true,
     };
 
-    console.log("previewPayload correctly working");
-
     const previewRes = await axios.post(MESHY_API_URL, previewPayload, {
-      headers: {
-        Authorization: `Bearer ${MESHY_API_KEY}`,
-      },
+      headers: { Authorization: `Bearer ${MESHY_API_KEY}` },
     });
 
     const previewTaskId = previewRes.data.result;
     console.log("Preview Task ID:", previewTaskId);
 
-    // Step 2: Poll until preview is done
+    // Step 2: Poll until preview is complete
     const previewTask = await pollTaskStatus(previewTaskId);
     const previewModelUrl = previewTask.model_urls?.glb;
 
-    // Step 3: Start refinement
+    // Step 3: Submit refinement
     const refinePayload = {
       mode: "refine",
-      image_url: `${image_url}`,
+      image_url: image_url,
       preview_task_id: previewTaskId,
     };
 
     const refineRes = await axios.post(MESHY_API_URL, refinePayload, {
-      headers: {
-        Authorization: `Bearer ${MESHY_API_KEY}`,
-      },
+      headers: { Authorization: `Bearer ${MESHY_API_KEY}` },
     });
 
     const refineTaskId = refineRes.data.result;
     console.log("Refine Task ID:", refineTaskId);
 
-    // Step 4: Poll until refined model is ready
+    // Step 4: Poll until refinement completes
     const refinedTask = await pollTaskStatus(refineTaskId);
     const refinedModelUrl = refinedTask.model_urls?.glb;
 
-    console.log("Result Preview Model URL:", refinedModelUrl);
+    if (!refinedModelUrl) {
+      return res.status(500).json({ error: "Refined model URL not available" });
+    }
+
+    // Return proxy URL instead of raw Meshy URL to avoid CORS issues
+    const proxyUrl = `/api/proxy-glb?url=${encodeURIComponent(refinedModelUrl)}`;
+
     return res.status(200).json({
       success: true,
-      preview_model_url: previewModelUrl,
+      // proxy_model_url: proxyUrl,
+      // preview_model_url: previewModelUrl,
       refined_model_url: refinedModelUrl,
     });
 
   } catch (error) {
-    // console.error("imageToModel Error:", error.response?.data || error.message);
+    console.error("imageToModel Error:", error.response?.data || error.message);
     return res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+// GET /api/proxy-glb
+const proxyGLB = async (req, res) => {
+  const { url } = req.query;
+
+  if (!url || !url.startsWith("https://")) {
+    return res.status(400).json({ error: "Invalid or missing 'url' query param" });
+  }
+
+  try {
+    const glbRes = await axios.get(url, { responseType: "arraybuffer" });
+
+    res.setHeader("Content-Type", "model/gltf-binary");
+    res.setHeader("Cache-Control", "public, max-age=3600");
+    res.send(glbRes.data);
+  } catch (err) {
+    console.error("GLB proxy error:", err.message);
+    res.status(500).json({ error: "Failed to fetch model" });
   }
 };
 
 module.exports = {
   imageToModel,
+  proxyGLB,
 };

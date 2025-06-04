@@ -2,11 +2,13 @@ const express = require('express');
 const router = express.Router();
 const { virtualTryOn } = require('../controllers/tryOn');
 const { getMeasurements } = require('../controllers/measurements');
-const { imageToModel } = require('../controllers/imageToModel');
+const { imageToModel, proxyGLB } = require('../controllers/imageToModel');
+const { downloadGLB } = require('../controllers/downloadGLB');
 
 router.post('/try-on', virtualTryOn);
 router.post('/measurements', getMeasurements);
 router.post('/imagetomodel', imageToModel);
-console.log("In api.js, router: ");
+router.get('/proxy-glb', proxyGLB);
+router.post('/download-glb', downloadGLB)
 
 module.exports = router;
