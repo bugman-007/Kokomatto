@@ -675,7 +675,7 @@ const MerchantPortalPage = ({ onLogout }) => {
                       </div>
                       <input
                         type="text"
-                        className="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md"
+                        className="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md h-10"
                         placeholder="Search products"
                       />
                     </div>

@@ -1,30 +1,33 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState } from "react";
 
 const TakePhotoModal = ({ open, onClose, onCapture }) => {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
-  const [cameraError, setCameraError] = useState('');
+  const [cameraError, setCameraError] = useState("");
   const [capturedImage, setCapturedImage] = useState(null);
 
   useEffect(() => {
     if (open) {
-      setCameraError('');
+      setCameraError("");
       setCapturedImage(null);
       // Start camera
-      navigator.mediaDevices.getUserMedia({ video: true })
+      navigator.mediaDevices
+        .getUserMedia({ video: true })
         .then((stream) => {
           if (videoRef.current) {
             videoRef.current.srcObject = stream;
           }
         })
         .catch((err) => {
-          setCameraError('Unable to access camera. Please check your device permissions.');
+          setCameraError(
+            "Unable to access camera. Please check your device permissions."
+          );
         });
     }
     // Cleanup: stop camera when modal closes
     return () => {
       if (videoRef.current && videoRef.current.srcObject) {
-        videoRef.current.srcObject.getTracks().forEach(track => track.stop());
+        videoRef.current.srcObject.getTracks().forEach((track) => track.stop());
       }
     };
   }, [open]);
@@ -35,9 +38,9 @@ const TakePhotoModal = ({ open, onClose, onCapture }) => {
     const canvas = canvasRef.current;
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext("2d");
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    const dataUrl = canvas.toDataURL('image/png');
+    const dataUrl = canvas.toDataURL("image/png");
     setCapturedImage(dataUrl);
   };
 
@@ -56,7 +59,15 @@ const TakePhotoModal = ({ open, onClose, onCapture }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
-      <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md relative">
+      <div
+        className="bg-white rounded-lg shadow-lg p-6 w-full relative"
+        style={{
+          width: "50vw",
+          height: "80vh",
+          maxWidth: "none",
+          maxHeight: "none",
+        }}
+      >
         <button
           className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
           onClick={onClose}
@@ -64,21 +75,24 @@ const TakePhotoModal = ({ open, onClose, onCapture }) => {
         >
           &times;
         </button>
-        <h3 className="text-lg font-semibold mb-4 text-center">Take a Product Photo</h3>
+        <h3 className="text-lg font-semibold mb-4 text-center">
+          Take a Product Photo
+        </h3>
         {cameraError ? (
           <div className="text-red-600 text-center mb-4">{cameraError}</div>
         ) : (
           <>
             {!capturedImage ? (
-              <div className="flex flex-col items-center">
+              <div className="flex flex-col items-center h-full justify-center">
                 <video
                   ref={videoRef}
                   autoPlay
                   playsInline
-                  className="rounded-lg bg-black w-full max-w-xs aspect-video mb-4"
+                  className="rounded-lg bg-black w-full h-[60%] mb-4 object-contain"
+                  style={{ maxWidth: "100%", maxHeight: "100%" }}
                 />
                 <button
-                  className="px-6 py-2 bg-indigo-600 text-white rounded-md font-medium hover:bg-indigo-700"
+                  className="px-6 py-2 bg-indigo-600 text-white rounded-md font-medium hover:bg-indigo-700 mt-4"
                   onClick={handleCapture}
                 >
                   Capture Photo
@@ -89,7 +103,17 @@ const TakePhotoModal = ({ open, onClose, onCapture }) => {
                 <img
                   src={capturedImage}
                   alt="Captured"
-                  className="rounded-lg w-full max-w-xs aspect-video mb-4 border"
+                  className="rounded-lg mb-4 border"
+                  style={{
+                    width: videoRef.current?.videoWidth
+                      ? `${videoRef.current.videoWidth}px`
+                      : "100%",
+                    height: videoRef.current?.videoHeight
+                      ? `${videoRef.current.videoHeight}px`
+                      : "auto",
+                    maxWidth: "100%",
+                    objectFit: "contain",
+                  }}
                 />
                 <div className="flex gap-2">
                   <button
@@ -107,7 +131,7 @@ const TakePhotoModal = ({ open, onClose, onCapture }) => {
                 </div>
               </div>
             )}
-            <canvas ref={canvasRef} style={{ display: 'none' }} />
+            <canvas ref={canvasRef} style={{ display: "none" }} />
           </>
         )}
       </div>

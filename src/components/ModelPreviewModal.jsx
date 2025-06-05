@@ -79,7 +79,7 @@ export default function ModelPreviewModal({ isOpen, onClose, modelUrl }) {
         Close
       </button>
 
-      <Canvas camera={{ position: [0, 0, 3] }}>
+      <Canvas camera={{ position: [0, 0, 3] }} style={{ background: "#fff" }}>
         <Suspense fallback={<Loader />}>
           {localUrl && <Model url={localUrl} />}
           <OrbitControls enablePan enableZoom enableRotate />
