@@ -1,6 +1,6 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 
-const CameraIcon = () => (
+const UploadIcon = () => (
   <svg
     className="w-5 h-5"
     fill="none"
@@ -11,7 +11,7 @@ const CameraIcon = () => (
     <path
       strokeLinecap="round"
       strokeLinejoin="round"
-      d="M15 10l4.553 2.276A2 2 0 0121 14.09V17a2 2 0 01-2 2H5a2 2 0 01-2-2v-2.91a2 2 0 01.447-1.814L8 10m7-4V6a2 2 0 00-2-2h-2a2 2 0 00-2 2v0m7 0h-2m-6 0H5"
+      d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 9l5-5 5 5M12 4v12"
     />
   </svg>
 );
@@ -20,20 +20,91 @@ const ViewProductModal = ({
   open,
   onClose,
   onSave,
-  onPreview3D,
-  image,
+  imageUrl,
   onImageChange,
   name,
   onNameChange,
   description,
+  modelUrl,
   onDescriptionChange,
+  category,
+  onCategoryChange,
 }) => {
   const fileInputRef = useRef(null);
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
 
-  // Close modal when clicking outside content
-  const handleBackdropClick = (e) => {
-    if (e.target === e.currentTarget) onClose();
+  const [cameraActive, setCameraActive] = useState(false);
+  const [cameraError, setCameraError] = useState(null);
+
+  // Open camera and stream to video element
+  const handleAdd3DModel = async () => {
+    setCameraError(null);
+    setCameraActive(true);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.play();
+      }
+    } catch (err) {
+      setCameraError(
+        "Unable to access camera. Please allow camera permission."
+      );
+      setCameraActive(false);
+    }
   };
+
+  // Return all data to parent component
+  const handleSave = () => {
+    if (onSave) {
+      onSave({
+      imageUrl,
+      name,
+      category,
+      description,
+      modelUrl,
+      });
+    }
+  }
+
+  // Take photo from video stream
+  const handleTakePhoto = () => {
+    if (!videoRef.current || !canvasRef.current) return;
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const dataUrl = canvas.toDataURL("image/png");
+    console.log("dataUrl: ", dataUrl);
+    // Stop camera
+    if (video.srcObject) {
+      video.srcObject.getTracks().forEach((track) => track.stop());
+    }
+    setCameraActive(false);
+    // Pass the image data to parent
+    if (onImageChange) {
+      // Simulate a synthetic event for compatibility
+      onImageChange(
+        { target: { files: [], value: dataUrl, dataUrl } },
+        dataUrl
+      );
+    }
+  };
+
+  // When modal closes, stop camera if active
+  React.useEffect(() => {
+    if (!open) {
+      // Always stop camera and reset state when modal closes
+      if (videoRef.current && videoRef.current.srcObject) {
+        videoRef.current.srcObject.getTracks().forEach((track) => track.stop());
+      }
+      setCameraActive(false);
+      setCameraError(null);
+    }
+  }, [open]);
 
   // Animation classes
   const modalAnim =
@@ -44,7 +115,9 @@ const ViewProductModal = ({
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
-      onClick={handleBackdropClick}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
       aria-modal="true"
       role="dialog"
     >
@@ -64,33 +137,60 @@ const ViewProductModal = ({
           &#10005;
         </button>
 
-        {/* Image Box */}
+        {/* Image Box / Camera */}
         <div className="relative w-full aspect-square bg-gray-100 rounded-t-2xl overflow-hidden flex items-center justify-center">
-          {image ? (
+          {cameraActive ? (
+            <>
+              <video
+                ref={videoRef}
+                className="object-cover w-full h-full"
+                autoPlay
+                playsInline
+                muted
+              />
+              <button
+                className="absolute top-3 left-1/2 -translate-x-1/2 bg-white/70 hover:bg-white/90 text-gray-800 px-4 py-1 rounded-full font-semibold shadow z-20"
+                onClick={handleTakePhoto}
+                type="button"
+              >
+                Take a photo
+              </button>
+              <canvas ref={canvasRef} className="hidden" />
+              {cameraError && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/60 text-white text-center p-4">
+                  {cameraError}
+                </div>
+              )}
+            </>
+          ) : imageUrl ? (
             <img
-              src={image}
+              src={imageUrl}
               alt="Product"
               className="object-cover w-full h-full"
             />
           ) : (
             <span className="text-gray-400 text-lg">No Image</span>
           )}
-          {/* Transparent Upload Button with Icon */}
-          <button
-            className="absolute bottom-3 right-3 bg-black/40 hover:bg-black/60 text-white p-2 rounded-full backdrop-blur-md transition flex items-center justify-center z-10"
-            onClick={() => fileInputRef.current.click()}
-            type="button"
-            aria-label="Upload Image"
-          >
-            <CameraIcon />
-          </button>
-          <input
-            type="file"
-            accept="image/*"
-            ref={fileInputRef}
-            className="hidden"
-            onChange={onImageChange}
-          />
+          {!cameraActive && (
+            <>
+              {/* Transparent Upload Button with Upload Icon */}
+              <button
+                className="absolute bottom-3 right-3 bg-black/40 hover:bg-black/60 text-white p-2 rounded-full backdrop-blur-md transition flex items-center justify-center z-10"
+                onClick={() => fileInputRef.current.click()}
+                type="button"
+                aria-label="Upload Image"
+              >
+                <UploadIcon />
+              </button>
+              <input
+                type="file"
+                accept="image/*"
+                ref={fileInputRef}
+                className="hidden"
+                onChange={onImageChange}
+              />
+            </>
+          )}
         </div>
 
         {/* Inputs & Preview Button */}
@@ -109,9 +209,20 @@ const ViewProductModal = ({
             rows={3}
             className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 transition resize-none"
           />
+          <select
+            className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 transition bg-white text-gray-700 font-semibold"
+            value={category}
+            onChange={onCategoryChange}
+          >
+            <option value="">Choose Category</option>
+            <option value="Clothing">Clothing</option>
+            <option value="Footwear">Footwear</option>
+            <option value="Accessories">Accessories</option>
+            <option value="Athletic Wear">Athletic Wear</option>
+          </select>
           <button
             className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-md py-2 font-semibold shadow hover:scale-105 transition"
-            onClick={onPreview3D}
+            onClick={handleAdd3DModel}
             type="button"
           >
             Add 3D Model
@@ -122,7 +233,7 @@ const ViewProductModal = ({
         <div className="flex justify-between gap-4 w-full px-6 mt-auto mb-6">
           <button
             className="flex-1 bg-green-500 hover:bg-green-600 text-white rounded-md py-2 font-semibold transition"
-            onClick={onSave}
+            onClick={handleSave}
             type="button"
           >
             Save

@@ -379,11 +379,26 @@ const OwnerDashboardPage = ({ onLogout }) => {
     status: "draft",
   });
 
+  const [newProduct, setNewProduct] = useState({
+    name: "",
+    description: "",
+    imageUrl: "",
+    category: "",
+    modelUrl: "",
+  });
+
   // Add missing handlers for articles
   const handleArticleEdit = (articleId) => {
     // Mock implementation
     setEditingArticle(articleId);
     setArticleFormVisible(true);
+  };
+
+  const handleNewProductChange = (field, value) => {
+    setNewProduct((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
   };
 
   const handleArticleDelete = (articleId) => {
@@ -398,9 +413,12 @@ const OwnerDashboardPage = ({ onLogout }) => {
     setEditingArticle(null);
   };
 
-  const handleProductImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
+  const handleProductImageChange = (e, dataUrl) => {
+    if (dataUrl) {
+      setProductImage(dataUrl);
+      console.log("Product image set from data URL:", dataUrl);
+    } else if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
       const reader = new FileReader();
       reader.onload = (ev) => setProductImage(ev.target.result);
       reader.readAsDataURL(file);
@@ -573,6 +591,14 @@ const OwnerDashboardPage = ({ onLogout }) => {
       ...planFormData,
       prices: updatedPrices,
     });
+  };
+
+  const handleProductSave = (data) => {
+    // data = {imageUrl, name, description, modelUrl}
+    console.log("Product Data: ", data);
+
+    setViewProductModal(false);
+    setProductImage(null);
   };
 
   // Add new state for notification preferences and modal visibility
@@ -1036,6 +1062,11 @@ const OwnerDashboardPage = ({ onLogout }) => {
     setCancelUserId(userId);
     setShowCancelConfirmation(true);
   };
+
+  // const handleCloseViewProductModal = () => {
+  //   setViewProductModal(false);
+  //   setProductImage(null); // <-- Clear the image when closing
+  // };
 
   const confirmCancelSubscription = () => {
     setSubscriptions(
@@ -8206,9 +8237,41 @@ const OwnerDashboardPage = ({ onLogout }) => {
     <>
       <ViewProductModal
         open={viewProductModal}
-        onClose={() => setViewProductModal(false)}
-        image={productImage}
-        onImageChange={handleProductImageChange}
+        onClose={() => {
+          setViewProductModal(false);
+          setNewProduct({
+            name: "",
+            description: "",
+            category: "",
+            imageUrl: "",
+            modelUrl: "",
+          });
+        }}
+        onSave={handleProductSave}
+        imageUrl={newProduct.imageUrl}
+        onImageChange={(e, dataUrl) => {
+          handleNewProductChange(
+            "imageUrl",
+            dataUrl ||
+              (e.target.files && e.target.files[0]
+                ? URL.createObjectURL(e.target.files[0])
+                : "")
+          );
+        }}
+        name={newProduct.name}
+        onNameChange={(e) => handleNewProductChange("name", e.target.value)}
+        description={newProduct.description}
+        onDescriptionChange={(e) =>
+          handleNewProductChange("description", e.target.value)
+        }
+        category={newProduct.category}
+        onCategoryChange={(e) =>
+          setNewProduct({ ...newProduct, category: e.target.value })
+        }
+        modelUrl={newProduct.modelUrl}
+        onModelUrlChange={(e) =>
+          handleNewProductChange("modelUrl", e.target.value)
+        }
       />
       <AdminLayout>
         <div className="flex flex-col h-full">
