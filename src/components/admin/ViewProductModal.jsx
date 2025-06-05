@@ -1,4 +1,7 @@
 import React, { useRef, useState } from "react";
+import axios from "axios";
+import ModelPreviewModal from "../ModelPreviewModal";
+import { SERVER_URL } from "../../utils/constant";
 
 const UploadIcon = () => (
   <svg
@@ -37,6 +40,10 @@ const ViewProductModal = ({
   const [cameraActive, setCameraActive] = useState(false);
   const [cameraError, setCameraError] = useState(null);
 
+  // New state for 3D model
+  const [modelPreviewUrl, setModelPreviewUrl] = useState(modelUrl || "");
+  const [loadingModel, setLoadingModel] = useState(false);
+
   // Open camera and stream to video element
   const handleAdd3DModel = async () => {
     setCameraError(null);
@@ -63,13 +70,13 @@ const ViewProductModal = ({
       name,
       category,
       description,
-      modelUrl,
+      modelUrl: modelPreviewUrl,
       });
     }
-  }
+  };
 
   // Take photo from video stream
-  const handleTakePhoto = () => {
+  const handleTakePhoto = async () => {
     if (!videoRef.current || !canvasRef.current) return;
     const video = videoRef.current;
     const canvas = canvasRef.current;
@@ -92,6 +99,25 @@ const ViewProductModal = ({
         dataUrl
       );
     }
+
+    // Call backend to generate 3D model
+    setLoadingModel(true);
+    setModelPreviewUrl(""); // Reset previous model
+    try {
+      const response = await axios.post(
+        `${SERVER_URL}/api/imagetomodel`,
+        { image_url: dataUrl }
+      );
+      // Expecting { modelUrl: "..." }
+      if (response.data && response.data.modelUrl) {
+        setModelPreviewUrl(response.data.modelUrl);
+      } else {
+        setCameraError("Failed to generate 3D model.");
+      }
+    } catch (err) {
+      setCameraError("Failed to generate 3D model.");
+    }
+    setLoadingModel(false);
   };
 
   // When modal closes, stop camera if active
@@ -137,7 +163,7 @@ const ViewProductModal = ({
           &#10005;
         </button>
 
-        {/* Image Box / Camera */}
+        {/* Image Box / Camera / Model */}
         <div className="relative w-full aspect-square bg-gray-100 rounded-t-2xl overflow-hidden flex items-center justify-center">
           {cameraActive ? (
             <>
@@ -162,6 +188,18 @@ const ViewProductModal = ({
                 </div>
               )}
             </>
+          ) : loadingModel ? (
+            <div className="flex flex-col items-center justify-center w-full h-full">
+              <span className="text-blue-500 font-semibold">Generating 3D Model...</span>
+            </div>
+          ) : modelPreviewUrl ? (
+            <div className="absolute inset-0 z-10 bg-black/80 flex items-center justify-center">
+              <ModelPreviewModal
+                isOpen={true}
+                onClose={() => setModelPreviewUrl("")}
+                modelUrl={modelPreviewUrl}
+              />
+            </div>
           ) : imageUrl ? (
             <img
               src={imageUrl}
@@ -171,7 +209,7 @@ const ViewProductModal = ({
           ) : (
             <span className="text-gray-400 text-lg">No Image</span>
           )}
-          {!cameraActive && (
+          {!cameraActive && !loadingModel && !modelPreviewUrl && (
             <>
               {/* Transparent Upload Button with Upload Icon */}
               <button

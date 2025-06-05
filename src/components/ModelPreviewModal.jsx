@@ -7,11 +7,9 @@ import {
   useProgress,
   useGLTF,
 } from "@react-three/drei";
-import axios from "axios";
 import Modal from "react-modal";
-import { SERVER_URL } from "../utils/constant";
 
-Modal.setAppElement("#root");
+// Modal.setAppElement("#root");
 
 function Loader() {
   const { progress } = useProgress();
@@ -26,27 +24,6 @@ function Loader() {
 
 export default function ModelPreviewModal({ isOpen, onClose, modelUrl }) {
   const [localUrl, setLocalUrl] = useState(modelUrl);
-
-  // useEffect(() => {
-  //   if (!modelUrl || !isOpen) return;
-
-    // const downloadModel = () => {
-    //     axios.post(`${SERVER_URL}/api/download-glb`, 
-    //       { url: modelUrl },
-    //     )
-    //     .then((res) => {
-    //     const {data} = res.json();
-    //     console.log( "Model download response:", data);
-    //     if (data.localUrl) {
-    //       setLocalUrl(`http://localhost:5000${data.localUrl}`);
-    //     }
-    //   }).catch ((err)=> {
-    //     console.error("Failed to download model:", err);
-    //   })
-    // };
-
-    // downloadModel();
-  // }, [modelUrl, isOpen]);
 
   const Model=({ url })=> {
     const gltf = useGLTF(url, true);
