@@ -1,7 +1,8 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect, Suspense } from "react";
 import axios from "axios";
-import ModelPreviewModal from "../ModelPreviewModal";
 import { SERVER_URL } from "../../utils/constant";
+import { Canvas } from "@react-three/fiber";
+import { OrbitControls, Environment, Html, useProgress, useGLTF } from "@react-three/drei";
 
 const UploadIcon = () => (
   <svg
@@ -19,6 +20,24 @@ const UploadIcon = () => (
   </svg>
 );
 
+// Loader for 3D model
+function Loader() {
+  const { progress } = useProgress();
+  return (
+    <Html center>
+      <div className="text-white bg-black px-4 py-2 rounded">
+        Loading {progress.toFixed(2)}%
+      </div>
+    </Html>
+  );
+}
+
+// 3D Model Viewer
+function ModelViewer({ url }) {
+  const { scene } = useGLTF(url, true);
+  return <primitive object={scene} dispose={null} />;
+}
+
 const ViewProductModal = ({
   open,
   onClose,
@@ -30,7 +49,6 @@ const ViewProductModal = ({
   description,
   onDescriptionChange,
   modelUrl,
-  onModelUrlChange,
   category,
   onCategoryChange,
 }) => {
@@ -40,12 +58,21 @@ const ViewProductModal = ({
 
   const [cameraActive, setCameraActive] = useState(false);
   const [cameraError, setCameraError] = useState(null);
-
-  // New state for 3D model
   const [modelPreviewUrl, setModelPreviewUrl] = useState(modelUrl || "");
   const [loadingModel, setLoadingModel] = useState(false);
+  const [localImageUrl, setLocalImageUrl] = useState(imageUrl || "");
 
-  // Open camera and stream to video element
+  // Reset state when modal opens
+  useEffect(() => {
+    if (open) {
+      setLocalImageUrl(imageUrl || "");
+      setModelPreviewUrl(modelUrl || "");
+      setCameraActive(false);
+      setCameraError(null);
+      setLoadingModel(false);
+    }
+  }, [open, imageUrl, modelUrl]);
+
   const handleAdd3DModel = async () => {
     setCameraError(null);
     setCameraActive(true);
@@ -63,21 +90,27 @@ const ViewProductModal = ({
     }
   };
 
-  // Return all data to parent component
   const handleSave = () => {
     if (onSave) {
       onSave({
-        imageUrl,
+        imageUrl: localImageUrl,
         name,
         category,
         description,
         modelUrl: modelPreviewUrl,
       });
     }
+    // Optionally, call onImageChange here if you want to sync image to parent
+    if (onImageChange) {
+      onImageChange(
+        { target: { files: [], value: localImageUrl, dataUrl: localImageUrl } },
+        localImageUrl
+      );
+    }
   };
 
-  // Take photo from video stream
-  const handleTakePhoto = async () => {
+  const handleTakePhoto = async (e) => {
+    e.preventDefault();
     if (!videoRef.current || !canvasRef.current) return;
     const video = videoRef.current;
     const canvas = canvasRef.current;
@@ -86,37 +119,25 @@ const ViewProductModal = ({
     const ctx = canvas.getContext("2d");
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
     const dataUrl = canvas.toDataURL("image/png");
-    console.log("Captured image data URL successfully captured.");
+
     // Stop camera
     if (video.srcObject) {
       video.srcObject.getTracks().forEach((track) => track.stop());
     }
     setCameraActive(false);
-    // Pass the image data to parent
-    if (onImageChange) {
-      // Simulate a synthetic event for compatibility
-      onImageChange(
-        { target: { files: [], value: dataUrl, dataUrl } },
-        dataUrl
-      );
-    }
 
-    // Call backend to generate 3D model
+    // Update local image state only
+    setLocalImageUrl(dataUrl);
+
+    // Generate 3D model - only update local state
     setLoadingModel(true);
-    setModelPreviewUrl(""); // Reset previous model
+    setModelPreviewUrl("");
     try {
       const response = await axios.post(`${SERVER_URL}/api/imagetomodel`, {
         image_url: dataUrl,
       });
-      console.log("3D model generation response:", response.data);
-      // Expecting { modelUrl: "..." }
-      if (response.data && response.data.modelUrl) {
-        setModelPreviewUrl(response.data.modelUrl);
-        if (onModelUrlChange) {
-          onModelUrlChange({ target: { value: response.data.modelUrl } });
-        }
-      } else {
-        setCameraError("Failed to generate 3D model.");
+      if (response.data?.modelUrl) {
+        setModelPreviewUrl(response.data.modelUrl); // Should be public/.... path
       }
     } catch (err) {
       setCameraError("Failed to generate 3D model.");
@@ -124,21 +145,14 @@ const ViewProductModal = ({
     setLoadingModel(false);
   };
 
-  // When modal closes, stop camera if active
-  React.useEffect(() => {
-    if (!open) {
-      // Always stop camera and reset state when modal closes
-      if (videoRef.current && videoRef.current.srcObject) {
+  // Cleanup camera on unmount
+  useEffect(() => {
+    return () => {
+      if (videoRef.current?.srcObject) {
         videoRef.current.srcObject.getTracks().forEach((track) => track.stop());
       }
-      setCameraActive(false);
-      setCameraError(null);
-    }
-  }, [open]);
-
-  // Animation classes
-  const modalAnim =
-    "transition-all duration-300 ease-out scale-95 opacity-0 group-open:scale-100 group-open:opacity-100";
+    };
+  }, []);
 
   if (!open) return null;
 
@@ -152,13 +166,12 @@ const ViewProductModal = ({
       role="dialog"
     >
       <div
-        className={`relative bg-white rounded-2xl shadow-xl flex flex-col items-center w-[90vw] max-w-[45vh] aspect-[9/16] h-[85vh] group ${modalAnim} mt-8`}
+        className={`relative bg-white rounded-2xl shadow-xl flex flex-col items-center w-[90vw] max-w-[45vh] aspect-[9/16] h-[85vh] group transition-all duration-300 ease-out scale-95 opacity-0 group-open:scale-100 group-open:opacity-100 mt-8`}
         style={{
           animation: "fadeInScale 0.3s cubic-bezier(.4,0,.2,1) forwards",
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Close Button */}
         <button
           type="button"
           className="absolute top-2 right-2 z-20 text-gray-500 hover:text-red-500 text-xl rounded-full p-1 transition"
@@ -168,7 +181,6 @@ const ViewProductModal = ({
           &#10005;
         </button>
 
-        {/* Image Box / Camera / Model */}
         <div className="relative w-full aspect-square bg-gray-100 rounded-t-2xl overflow-hidden flex items-center justify-center">
           {cameraActive ? (
             <>
@@ -200,16 +212,18 @@ const ViewProductModal = ({
               </span>
             </div>
           ) : modelPreviewUrl ? (
-            <div className="absolute inset-0 z-10 bg-black/80 flex items-center justify-center">
-              <ModelPreviewModal
-                isOpen={true}
-                onClose={() => setModelPreviewUrl("")}
-                modelUrl={modelPreviewUrl}
-              />
+            <div className="absolute inset-0 w-full h-full bg-black/80 flex items-center justify-center">
+              <Canvas camera={{ position: [0, 0, 3] }} style={{ width: "100%", height: "100%", background: "#fff" }}>
+                <Suspense fallback={<Loader />}>
+                  <ModelViewer url={modelPreviewUrl} />
+                  <OrbitControls enablePan enableZoom enableRotate />
+                  <Environment preset="warehouse" />
+                </Suspense>
+              </Canvas>
             </div>
-          ) : imageUrl ? (
+          ) : localImageUrl ? (
             <img
-              src={imageUrl}
+              src={localImageUrl}
               alt="Product"
               className="object-cover w-full h-full"
             />
@@ -218,7 +232,6 @@ const ViewProductModal = ({
           )}
           {!cameraActive && !loadingModel && !modelPreviewUrl && (
             <>
-              {/* Transparent Upload Button with Upload Icon */}
               <button
                 className="absolute bottom-3 right-3 bg-black/40 hover:bg-black/60 text-white p-2 rounded-full backdrop-blur-md transition flex items-center justify-center z-10"
                 onClick={() => fileInputRef.current.click()}
@@ -238,7 +251,6 @@ const ViewProductModal = ({
           )}
         </div>
 
-        {/* Inputs & Preview Button */}
         <div className="flex flex-col gap-3 w-full px-6 mt-6">
           <input
             type="text"
@@ -274,7 +286,6 @@ const ViewProductModal = ({
           </button>
         </div>
 
-        {/* Bottom Buttons */}
         <div className="flex justify-between gap-4 w-full px-6 mt-auto mb-6">
           <button
             className="flex-1 bg-green-500 hover:bg-green-600 text-white rounded-md py-2 font-semibold transition"
@@ -292,7 +303,6 @@ const ViewProductModal = ({
           </button>
         </div>
       </div>
-      {/* Animation keyframes */}
       <style>{`
         @keyframes fadeInScale {
           0% { opacity: 0; transform: scale(0.95);}
