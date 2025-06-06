@@ -28,8 +28,9 @@ const ViewProductModal = ({
   name,
   onNameChange,
   description,
-  modelUrl,
   onDescriptionChange,
+  modelUrl,
+  onModelUrlChange,
   category,
   onCategoryChange,
 }) => {
@@ -66,11 +67,11 @@ const ViewProductModal = ({
   const handleSave = () => {
     if (onSave) {
       onSave({
-      imageUrl,
-      name,
-      category,
-      description,
-      modelUrl: modelPreviewUrl,
+        imageUrl,
+        name,
+        category,
+        description,
+        modelUrl: modelPreviewUrl,
       });
     }
   };
@@ -85,7 +86,7 @@ const ViewProductModal = ({
     const ctx = canvas.getContext("2d");
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
     const dataUrl = canvas.toDataURL("image/png");
-    console.log("dataUrl: ", dataUrl);
+    console.log("Captured image data URL successfully captured.");
     // Stop camera
     if (video.srcObject) {
       video.srcObject.getTracks().forEach((track) => track.stop());
@@ -104,13 +105,16 @@ const ViewProductModal = ({
     setLoadingModel(true);
     setModelPreviewUrl(""); // Reset previous model
     try {
-      const response = await axios.post(
-        `${SERVER_URL}/api/imagetomodel`,
-        { image_url: dataUrl }
-      );
+      const response = await axios.post(`${SERVER_URL}/api/imagetomodel`, {
+        image_url: dataUrl,
+      });
+      console.log("3D model generation response:", response.data);
       // Expecting { modelUrl: "..." }
       if (response.data && response.data.modelUrl) {
         setModelPreviewUrl(response.data.modelUrl);
+        if (onModelUrlChange) {
+          onModelUrlChange({ target: { value: response.data.modelUrl } });
+        }
       } else {
         setCameraError("Failed to generate 3D model.");
       }
@@ -156,6 +160,7 @@ const ViewProductModal = ({
       >
         {/* Close Button */}
         <button
+          type="button"
           className="absolute top-2 right-2 z-20 text-gray-500 hover:text-red-500 text-xl rounded-full p-1 transition"
           onClick={onClose}
           aria-label="Close"
@@ -190,7 +195,9 @@ const ViewProductModal = ({
             </>
           ) : loadingModel ? (
             <div className="flex flex-col items-center justify-center w-full h-full">
-              <span className="text-blue-500 font-semibold">Generating 3D Model...</span>
+              <span className="text-blue-500 font-semibold">
+                Generating 3D Model...
+              </span>
             </div>
           ) : modelPreviewUrl ? (
             <div className="absolute inset-0 z-10 bg-black/80 flex items-center justify-center">

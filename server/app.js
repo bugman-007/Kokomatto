@@ -13,6 +13,8 @@ app.use(cors(config.corsOptions));
 const allowedOrigins = [
   "https://kokomatto.vercel.app",
   "https://staging.kokomatto.com",
+  "http://localhost:5000",
+  "http://localhost:3000",
 ];
 
 const corsOptions = {

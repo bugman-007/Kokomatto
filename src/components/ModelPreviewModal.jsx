@@ -9,7 +9,7 @@ import {
 } from "@react-three/drei";
 import Modal from "react-modal";
 
-// Modal.setAppElement("#root");
+Modal.setAppElement("#root");
 
 function Loader() {
   const { progress } = useProgress();

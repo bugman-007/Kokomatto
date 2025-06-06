@@ -4,7 +4,7 @@ const fs = require("fs");
 const MESHY_API_KEY = process.env.MESHY_API_KEY;
 const MESHY_API_URL = "https://api.meshy.ai/openapi/v1/image-to-3d";
 
-const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function pollTaskStatus(taskId) {
   const headers = {
@@ -19,7 +19,9 @@ async function pollTaskStatus(taskId) {
       return task;
     }
 
-    console.log(`Task ${taskId} status: ${task.status} | Progress: ${task.progress}`);
+    console.log(
+      `Task ${taskId} status: ${task.status} | Progress: ${task.progress}`
+    );
     await sleep(5000);
   }
 }
@@ -46,7 +48,7 @@ const imageToModel = async (req, res) => {
     });
 
     const previewTaskId = previewRes.data.result;
-    console.log("Preview Task ID:", previewTaskId);
+    // console.log("Preview Task ID:", previewTaskId);
 
     // Step 2: Poll until preview is complete
     const previewTask = await pollTaskStatus(previewTaskId);
@@ -64,7 +66,7 @@ const imageToModel = async (req, res) => {
     });
 
     const refineTaskId = refineRes.data.result;
-    console.log("Refine Task ID:", refineTaskId);
+    // console.log("Refine Task ID:", refineTaskId);
 
     // Step 4: Poll until refinement completes
     const refinedTask = await pollTaskStatus(refineTaskId);
@@ -75,49 +77,50 @@ const imageToModel = async (req, res) => {
     }
 
     // Return proxy URL instead of raw Meshy URL to avoid CORS issues
-    const proxyUrl = `/api/proxy-glb?url=${encodeURIComponent(refinedModelUrl)}`;
+    const proxyUrl = `/api/proxy-glb?url=${encodeURIComponent(
+      refinedModelUrl
+    )}`;
 
     const response = await axios({
-          url: refinedModelUrl,
-          method: "GET",
-          responseType: "stream",
-        });
-    const fileName = `model-${Date.now()}.glb`;
-      const modelDir = path.resolve(__dirname, "../../public/models/3dassets");
-      const filePath = path.join(modelDir, fileName);
-  
-      // Ensure the directory exists
-      if (!fs.existsSync(modelDir)) {
-        fs.mkdirSync(modelDir, { recursive: true });
-      }
-  
-      const writer = fs.createWriteStream(filePath);
-      response.data.pipe(writer);
-  
-      writer.on("finish", () => {
-        
-    return res.status(200).json({
-      success: true,
-      // proxy_model_url: proxyUrl,
-      // preview_model_url: previewModelUrl,
-      refined_model_url: `/models/3dassets/${fileName}`,
+      url: refinedModelUrl,
+      method: "GET",
+      responseType: "stream",
     });
-        // res
-        //   .status(200)
-        //   .json({ success: true, fileName, localUrl: `/models/3dassets/${fileName}` });
+    const fileName = `model-${Date.now()}.glb`;
+    const modelDir = path.resolve(__dirname, "../../public/models/3dassets");
+    const filePath = path.join(modelDir, fileName);
+
+    // Ensure the directory exists
+    if (!fs.existsSync(modelDir)) {
+      fs.mkdirSync(modelDir, { recursive: true });
+    }
+
+    const writer = fs.createWriteStream(filePath);
+    response.data.pipe(writer);
+
+    writer.on("finish", () => {
+      console.log("Refined model URL sent successfully");
+      return res.status(200).json({
+        success: true,
+        // proxy_model_url: proxyUrl,
+        // preview_model_url: previewModelUrl,
+        refined_model_url: `/models/3dassets/${fileName}`,
       });
-  
-      writer.on("error", (err) => {
-        console.error(err);
-        res.status(500).json({ error: "Failed to save the GLB file" });
-      });
+      // res
+      //   .status(200)
+      //   .json({ success: true, fileName, localUrl: `/models/3dassets/${fileName}` });
+    });
+
+    writer.on("error", (err) => {
+      console.error(err);
+      res.status(500).json({ error: "Failed to save the GLB file" });
+    });
     // return res.status(200).json({
     //   success: true,
     //   // proxy_model_url: proxyUrl,
     //   // preview_model_url: previewModelUrl,
     //   refined_model_url: refinedModelUrl,
     // });
-
   } catch (error) {
     console.error("imageToModel Error:", error.response?.data || error.message);
     return res.status(500).json({ error: "Internal Server Error" });
@@ -129,7 +132,9 @@ const proxyGLB = async (req, res) => {
   const { url } = req.query;
 
   if (!url || !url.startsWith("https://")) {
-    return res.status(400).json({ error: "Invalid or missing 'url' query param" });
+    return res
+      .status(400)
+      .json({ error: "Invalid or missing 'url' query param" });
   }
 
   try {

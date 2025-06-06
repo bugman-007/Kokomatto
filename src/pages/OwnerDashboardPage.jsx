@@ -2026,7 +2026,7 @@ const OwnerDashboardPage = ({ onLogout }) => {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                        <button
+                        <button type = "button"
                           className="text-indigo-600 hover:text-indigo-900 focus:outline-none focus:underline"
                           onClick={() =>
                             navigate(`/admin/customers/alex-johnson`)
@@ -2034,7 +2034,7 @@ const OwnerDashboardPage = ({ onLogout }) => {
                         >
                           View
                         </button>
-                        <button
+                        <button type = "button"
                           className="text-blue-600 hover:text-blue-900 focus:outline-none focus:underline"
                           onClick={() =>
                             handleViewCustomerOrders("Alex Johnson")
@@ -2077,7 +2077,7 @@ const OwnerDashboardPage = ({ onLogout }) => {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                        <button
+                        <button type = "button"
                           className="text-indigo-600 hover:text-indigo-900 focus:outline-none focus:underline"
                           onClick={() =>
                             navigate(`/admin/customers/sarah-williams`)
@@ -2085,7 +2085,7 @@ const OwnerDashboardPage = ({ onLogout }) => {
                         >
                           View
                         </button>
-                        <button
+                        <button type = "button"
                           className="text-blue-600 hover:text-blue-900 focus:outline-none focus:underline"
                           onClick={() =>
                             handleViewCustomerOrders("Sarah Williams")
@@ -2173,7 +2173,7 @@ const OwnerDashboardPage = ({ onLogout }) => {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                        <button
+                        <button type = "button"
                           className="text-indigo-600 hover:text-indigo-900 focus:outline-none focus:underline"
                           onClick={() =>
                             handleEditMerchant("Fashion Retailer Co.")
@@ -2181,7 +2181,7 @@ const OwnerDashboardPage = ({ onLogout }) => {
                         >
                           Edit
                         </button>
-                        <button
+                        <button type = "button"
                           className="text-red-600 hover:text-red-900 focus:outline-none focus:underline"
                           onClick={() =>
                             handleSuspendMerchant("Fashion Retailer Co.")
@@ -2224,13 +2224,13 @@ const OwnerDashboardPage = ({ onLogout }) => {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                        <button
+                        <button type = "button"
                           className="text-indigo-600 hover:text-indigo-900 focus:outline-none focus:underline"
                           onClick={() => handleEditMerchant("Urban Styles LLC")}
                         >
                           Edit
                         </button>
-                        <button
+                        <button type = "button"
                           className="text-red-600 hover:text-red-900 focus:outline-none focus:underline"
                           onClick={() =>
                             handleSuspendMerchant("Urban Styles LLC")
@@ -2332,19 +2332,19 @@ const OwnerDashboardPage = ({ onLogout }) => {
                       <div className="text-sm text-gray-500">May 1, 2023</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                      <button
+                      <button type = "button"
                         className="text-indigo-600 hover:text-indigo-900 focus:outline-none focus:underline"
                         onClick={() => navigate(`/admin/affiliates/john-doe`)}
                       >
                         View
                       </button>
-                      <button
+                      <button type = "button"
                         className="text-blue-600 hover:text-blue-900 focus:outline-none focus:underline"
                         onClick={() => handleEditAffiliate("John Doe")}
                       >
                         Edit
                       </button>
-                      <button
+                      <button type = "button"
                         className="text-red-600 hover:text-red-900 focus:outline-none focus:underline"
                         onClick={() => handleDeactivateAffiliate("John Doe")}
                       >
@@ -2386,19 +2386,19 @@ const OwnerDashboardPage = ({ onLogout }) => {
                       <div className="text-sm text-gray-500">May 1, 2023</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                      <button
+                      <button type = "button"
                         className="text-indigo-600 hover:text-indigo-900 focus:outline-none focus:underline"
                         onClick={() => navigate(`/admin/affiliates/jane-smith`)}
                       >
                         View
                       </button>
-                      <button
+                      <button type = "button"
                         className="text-blue-600 hover:text-blue-900 focus:outline-none focus:underline"
                         onClick={() => handleEditAffiliate("Jane Smith")}
                       >
                         Edit
                       </button>
-                      <button
+                      <button type = "button"
                         className="text-red-600 hover:text-red-900 focus:outline-none focus:underline"
                         onClick={() => handleDeactivateAffiliate("Jane Smith")}
                       >
@@ -2429,7 +2429,7 @@ const OwnerDashboardPage = ({ onLogout }) => {
               <h3 className="text-xl font-bold text-gray-900">
                 Popup Management
               </h3>
-              <button
+              <button type = "button"
                 onClick={() => {
                   setEditingPopup(null);
                   setShowPopupForm(true);
@@ -2556,7 +2556,7 @@ const OwnerDashboardPage = ({ onLogout }) => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                           <div className="flex space-x-2">
-                            <button
+                            <button type = "button"
                               onClick={() => {
                                 setEditingPopup(popup);
                                 setShowPopupForm(true);
@@ -2566,7 +2566,7 @@ const OwnerDashboardPage = ({ onLogout }) => {
                             >
                               <EditOutlined />
                             </button>
-                            <button
+                            <button type = "button"
                               onClick={() => {
                                 const updatedPopup = {
                                   ...popup,
@@ -2706,7 +2706,7 @@ const OwnerDashboardPage = ({ onLogout }) => {
                         API usage and developer tools
                       </p>
                     </div>
-                    <button
+                    <button type = "button"
                       onClick={handleViewApiDashboard}
                       className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
                     >
@@ -2727,7 +2727,7 @@ const OwnerDashboardPage = ({ onLogout }) => {
                         Required for all administrators
                       </p>
                     </div>
-                    <button
+                    <button type = "button"
                       onClick={() => handleEditSetting("2FA", "Admins Only")}
                       className="px-3 py-1 border border-gray-300 rounded text-gray-700 hover:bg-gray-100 transition"
                     >
@@ -2742,7 +2742,7 @@ const OwnerDashboardPage = ({ onLogout }) => {
                         Minimum 8 characters, 1 special character
                       </p>
                     </div>
-                    <button
+                    <button type = "button"
                       onClick={() =>
                         handleEditSetting("PasswordPolicy", "Standard")
                       }
@@ -2770,7 +2770,7 @@ const OwnerDashboardPage = ({ onLogout }) => {
                         types enabled
                       </p>
                     </div>
-                    <button
+                    <button type = "button"
                       onClick={() =>
                         handleEditSetting("EmailNotifications", "Configure")
                       }
@@ -2787,7 +2787,7 @@ const OwnerDashboardPage = ({ onLogout }) => {
                         System alerts for critical events
                       </p>
                     </div>
-                    <button
+                    <button type = "button"
                       onClick={() =>
                         handleEditSetting("AlertThresholds", "Configure")
                       }
@@ -2812,7 +2812,7 @@ const OwnerDashboardPage = ({ onLogout }) => {
                         Stripe, PayPal configured
                       </p>
                     </div>
-                    <button
+                    <button type = "button"
                       onClick={() =>
                         handleEditSetting("PaymentGateways", "2 active")
                       }
@@ -2829,7 +2829,7 @@ const OwnerDashboardPage = ({ onLogout }) => {
                         Commission rates and fixed fees
                       </p>
                     </div>
-                    <button
+                    <button type = "button"
                       onClick={() =>
                         handleEditSetting("PlatformFees", "5% + $0.30")
                       }
@@ -3204,19 +3204,19 @@ const OwnerDashboardPage = ({ onLogout }) => {
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <button
+                  <button type = "button"
                     onClick={() => setViewingArticles(category)}
                     className="text-blue-600 hover:text-blue-900 mr-4"
                   >
                     Articles
                   </button>
-                  <button
+                  <button type = "button"
                     onClick={() => setEditingCategory(category)}
                     className="text-indigo-600 hover:text-indigo-900 mr-4"
                   >
                     Edit
                   </button>
-                  <button
+                  <button type = "button"
                     onClick={() => handleCategoryDelete(category.id)}
                     className="text-red-600 hover:text-red-900"
                   >
@@ -3233,7 +3233,7 @@ const OwnerDashboardPage = ({ onLogout }) => {
           return (
             <div className="w-full">
               <div className="mb-6">
-                <button
+                <button type = "button"
                   onClick={() => setViewingArticles(null)}
                   className="flex items-center text-gray-500 hover:text-gray-700"
                 >
@@ -3257,13 +3257,13 @@ const OwnerDashboardPage = ({ onLogout }) => {
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold">Categories Management</h2>
               <div className="flex items-center gap-2">
-                <button
+                <button type = "button"
                   onClick={() => setViewProductModal(true)}
                   className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700"
                 >
                   Add Product
                 </button>
-                <button
+                <button type = "button"
                   onClick={() => setIsAddingCategory(true)}
                   className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
                 >
@@ -3395,7 +3395,7 @@ const OwnerDashboardPage = ({ onLogout }) => {
               <h3 className="text-xl font-bold text-gray-900">
                 Contact Page Management
               </h3>
-              <button
+              <button type = "button"
                 onClick={() => navigateToTab("overview")}
                 className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 flex items-center"
               >
@@ -3451,14 +3451,14 @@ const OwnerDashboardPage = ({ onLogout }) => {
                 SEO Service Enhancements
               </h3>
               <div className="flex flex-wrap gap-2">
-                <button
+                <button type = "button"
                   onClick={() => setShowAddLanguageModal(true)}
                   className="px-3 py-2 sm:px-4 sm:py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 flex items-center text-sm sm:text-base"
                 >
                   <FaLanguage className="mr-1 sm:mr-2" />
                   <span>Add Language</span>
                 </button>
-                <button
+                <button type = "button"
                   onClick={() => setShowCreatePageModal(true)}
                   className="px-3 py-2 sm:px-4 sm:py-2 bg-green-600 text-white rounded-md hover:bg-green-700 flex items-center text-sm sm:text-base"
                 >
@@ -3588,21 +3588,21 @@ const OwnerDashboardPage = ({ onLogout }) => {
                         </td>
                         <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm">
                           <div className="flex space-x-2">
-                            <button
+                            <button type = "button"
                               onClick={() => setEditingSeoPage(page)}
                               className="text-indigo-600 hover:text-indigo-900 p-1"
                               title="Edit SEO Settings"
                             >
                               <FaEdit />
                             </button>
-                            <button
+                            <button type = "button"
                               onClick={() => handleDuplicatePage(page.id)}
                               className="text-blue-600 hover:text-blue-900 p-1"
                               title="Duplicate Page"
                             >
                               <FaCopy />
                             </button>
-                            <button
+                            <button type = "button"
                               onClick={() => handleDeletePage(page.id)}
                               className="text-red-600 hover:text-red-900 p-1"
                               title="Delete Page"
@@ -3699,7 +3699,7 @@ const OwnerDashboardPage = ({ onLogout }) => {
                   </div>
 
                   <div className="flex flex-col sm:flex-row justify-end gap-2 sm:space-x-3">
-                    <button
+                    <button type = "button"
                       className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md order-2 sm:order-1"
                       onClick={() => setEditingSeoPage(null)}
                     >
@@ -8198,7 +8198,7 @@ const OwnerDashboardPage = ({ onLogout }) => {
       <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
         <div className="flex justify-between items-center p-4 border-b">
           <h2 className="text-xl font-bold">Help Center</h2>
-          <button
+          <button type="button"
             onClick={() => setHelpCenterVisible(false)}
             className="text-gray-400 hover:text-gray-500"
           >
@@ -8279,13 +8279,13 @@ const OwnerDashboardPage = ({ onLogout }) => {
           <div className="flex flex-col sm:flex-row justify-between items-center p-4 border-b gap-4">
             <h1 className="text-2xl font-bold">Dashboard</h1>
             <div className="flex space-x-4">
-              <button
+              <button type="button"
                 onClick={() => setHelpCenterVisible(true)}
                 className="px-3 sm:px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 flex items-center text-sm sm:text-base"
               >
                 <MessageOutlined className="mr-1 sm:mr-2" /> Help Center
               </button>
-              <button
+              <button type="button"
                 onClick={onLogout}
                 className="px-3 sm:px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 flex items-center text-sm sm:text-base"
               >
@@ -8298,7 +8298,7 @@ const OwnerDashboardPage = ({ onLogout }) => {
           <div className="border-b overflow-hidden">
             <div className="overflow-x-auto pb-1 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
               <div className="flex whitespace-nowrap p-4 min-w-max">
-                <button
+                <button type="button"
                   onClick={() => setActiveTab("overview")}
                   className={`px-4 py-2 mr-4 ${
                     activeTab === "overview"
@@ -8308,7 +8308,7 @@ const OwnerDashboardPage = ({ onLogout }) => {
                 >
                   Overview
                 </button>
-                <button
+                <button type="button"
                   onClick={() => setActiveTab("customers")}
                   className={`px-4 py-2 mr-4 ${
                     activeTab === "customers"
@@ -8318,7 +8318,7 @@ const OwnerDashboardPage = ({ onLogout }) => {
                 >
                   Customers
                 </button>
-                <button
+                <button type="button"
                   onClick={() => setActiveTab("merchants")}
                   className={`px-4 py-2 mr-4 ${
                     activeTab === "merchants"
@@ -8328,7 +8328,7 @@ const OwnerDashboardPage = ({ onLogout }) => {
                 >
                   Merchants
                 </button>
-                <button
+                <button type="button"
                   onClick={() => setActiveTab("affiliates")}
                   className={`px-4 py-2 mr-4 ${
                     activeTab === "affiliates"
@@ -8338,7 +8338,7 @@ const OwnerDashboardPage = ({ onLogout }) => {
                 >
                   Affiliates
                 </button>
-                <button
+                <button type="button"
                   onClick={() => setActiveTab("marketing-materials")}
                   className={`px-4 py-2 mr-4 ${
                     activeTab === "marketing-materials"
@@ -8348,7 +8348,7 @@ const OwnerDashboardPage = ({ onLogout }) => {
                 >
                   Marketing Materials
                 </button>
-                <button
+                <button type="button"
                   onClick={() => setActiveTab("popups")}
                   className={`px-4 py-2 mr-4 ${
                     activeTab === "popups"
@@ -8358,7 +8358,7 @@ const OwnerDashboardPage = ({ onLogout }) => {
                 >
                   Popups
                 </button>
-                <button
+                <button type="button"
                   onClick={() => setActiveTab("settings")}
                   className={`px-4 py-2 mr-4 ${
                     activeTab === "settings"
@@ -8368,7 +8368,7 @@ const OwnerDashboardPage = ({ onLogout }) => {
                 >
                   Settings
                 </button>
-                <button
+                <button type="button"
                   onClick={() => setActiveTab("categories")}
                   className={`px-4 py-2 mr-4 ${
                     activeTab === "categories"
@@ -8378,7 +8378,7 @@ const OwnerDashboardPage = ({ onLogout }) => {
                 >
                   Categories
                 </button>
-                <button
+                <button type="button"
                   onClick={() => setActiveTab("about")}
                   className={`px-4 py-2 mr-4 ${
                     activeTab === "about"
@@ -8388,7 +8388,7 @@ const OwnerDashboardPage = ({ onLogout }) => {
                 >
                   About
                 </button>
-                <button
+                <button type="button"
                   onClick={() => setActiveTab("contact")}
                   className={`px-4 py-2 mr-4 ${
                     activeTab === "contact"
@@ -8398,7 +8398,7 @@ const OwnerDashboardPage = ({ onLogout }) => {
                 >
                   Contact
                 </button>
-                <button
+                <button type="button"
                   onClick={() => setActiveTab("seo")}
                   className={`px-4 py-2 mr-4 ${
                     activeTab === "seo"
@@ -8408,7 +8408,7 @@ const OwnerDashboardPage = ({ onLogout }) => {
                 >
                   SEO
                 </button>
-                <button
+                <button type="button"
                   onClick={() => setActiveTab("chat")}
                   className={`px-4 py-2 mr-4 ${
                     activeTab === "chat"
@@ -8418,7 +8418,7 @@ const OwnerDashboardPage = ({ onLogout }) => {
                 >
                   Chat
                 </button>
-                <button
+                <button type="button"
                   onClick={() => setActiveTab("reviews")}
                   className={`px-4 py-2 mr-4 ${
                     activeTab === "reviews"
@@ -8428,7 +8428,7 @@ const OwnerDashboardPage = ({ onLogout }) => {
                 >
                   Reviews
                 </button>
-                <button
+                <button type="button"
                   onClick={() => setActiveTab("pages")}
                   className={`px-4 py-2 mr-4 ${
                     activeTab === "pages"
@@ -8438,7 +8438,7 @@ const OwnerDashboardPage = ({ onLogout }) => {
                 >
                   Pages
                 </button>
-                <button
+                <button type="button"
                   onClick={() => setActiveTab("analytics")}
                   className={`px-4 py-2 mr-4 ${
                     activeTab === "analytics"
@@ -8448,7 +8448,7 @@ const OwnerDashboardPage = ({ onLogout }) => {
                 >
                   Analytics
                 </button>
-                <button
+                <button type="button"
                   onClick={() => setActiveTab("subscriptions")}
                   className={`px-4 py-2 mr-4 ${
                     activeTab === "subscriptions"
@@ -8458,7 +8458,7 @@ const OwnerDashboardPage = ({ onLogout }) => {
                 >
                   Subscriptions
                 </button>
-                <button
+                <button type="button"
                   onClick={() => navigateToTab("category-articles")}
                   className={`px-4 py-2 ${
                     activeTab === "category-articles"
@@ -8468,7 +8468,7 @@ const OwnerDashboardPage = ({ onLogout }) => {
                 >
                   Category Articles
                 </button>
-                <button
+                <button type="button"
                   onClick={() => setActiveTab("subscription-plans")}
                   className={`px-4 py-2 mr-4 ${
                     activeTab === "subscription-plans"
@@ -8478,7 +8478,7 @@ const OwnerDashboardPage = ({ onLogout }) => {
                 >
                   Subscription Plans
                 </button>
-                <button
+                <button type="button"
                   onClick={() => setActiveTab("media-assets")}
                   className={`px-4 py-2 mr-4 ${
                     activeTab === "media-assets"
@@ -8488,7 +8488,7 @@ const OwnerDashboardPage = ({ onLogout }) => {
                 >
                   Media Assets
                 </button>
-                <button
+                <button type="button"
                   onClick={() => setActiveTab("social-media")}
                   className={`px-4 py-2 ${
                     activeTab === "social-media"
