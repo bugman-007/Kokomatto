@@ -1,10 +1,48 @@
+// imageToModel.js (No stream version)
 const axios = require("axios");
 const path = require("path");
 const fs = require("fs");
-const MESHY_API_KEY = process.env.MESHY_API_KEY;
-const MESHY_API_URL = "https://api.meshy.ai/openapi/v1/image-to-3d";
+const MESHY_API_KEY = process.env.MESHY_TEST_API_KEY;
+const MESHY_API_URL = process.env.MESHY_API_URL;
+const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
+const { NodeHttpHandler } = require("@aws-sdk/node-http-handler");
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const s3 = new S3Client({
+  region: "us-east-1",
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  },
+  requestHandler: new NodeHttpHandler({
+    connectionTimeout: 10000,
+    socketTimeout: 20000,
+  }),
+  maxAttempts: 1,
+});
+
+const uploadToS3 = async (buffer, filename, contentType) => {
+  const command = new PutObjectCommand({
+    Bucket: "kokomatto-3d-models",
+    Key: `models/${filename}`,
+    Body: buffer,
+    ContentType: contentType,
+    ACL: "public-read",
+  });
+
+  try {
+    console.log("I am in try block of uploadToS3");
+    await s3.send(command);
+    console.log("Uploading to S3:", filename);
+    const publicUrl = `https://kokomatto-3d-models.s3.amazonaws.com/models/${filename}`;
+    console.log(`Uploaded to S3: ${publicUrl}`);
+    return publicUrl;
+  } catch (err) {
+    console.error("S3 v3 upload error:", err);
+    throw err;
+  }
+};
 
 async function pollTaskStatus(taskId) {
   const headers = {
@@ -18,7 +56,6 @@ async function pollTaskStatus(taskId) {
     if (task.status === "SUCCEEDED") {
       return task;
     }
-
     console.log(
       `Task ${taskId} status: ${task.status} | Progress: ${task.progress}`
     );
@@ -34,7 +71,6 @@ const imageToModel = async (req, res) => {
       return res.status(400).json({ error: "No image_url provided" });
     }
 
-    // Step 1: Submit image-to-3d task (preview mode)
     const previewPayload = {
       mode: "preview",
       image_url: image_url,
@@ -48,13 +84,9 @@ const imageToModel = async (req, res) => {
     });
 
     const previewTaskId = previewRes.data.result;
-    // console.log("Preview Task ID:", previewTaskId);
-
-    // Step 2: Poll until preview is complete
     const previewTask = await pollTaskStatus(previewTaskId);
     const previewModelUrl = previewTask.model_urls?.glb;
 
-    // Step 3: Submit refinement
     const refinePayload = {
       mode: "refine",
       image_url: image_url,
@@ -66,9 +98,6 @@ const imageToModel = async (req, res) => {
     });
 
     const refineTaskId = refineRes.data.result;
-    // console.log("Refine Task ID:", refineTaskId);
-
-    // Step 4: Poll until refinement completes
     const refinedTask = await pollTaskStatus(refineTaskId);
     const refinedModelUrl = refinedTask.model_urls?.glb;
 
@@ -76,51 +105,27 @@ const imageToModel = async (req, res) => {
       return res.status(500).json({ error: "Refined model URL not available" });
     }
 
-    // Return proxy URL instead of raw Meshy URL to avoid CORS issues
-    const proxyUrl = `/api/proxy-glb?url=${encodeURIComponent(
-      refinedModelUrl
-    )}`;
-
     const response = await axios({
       url: refinedModelUrl,
       method: "GET",
-      responseType: "stream",
+      responseType: "arraybuffer",
+      timeout: 20000,
     });
+
+    const buffer = Buffer.from(response.data);
     const fileName = `model-${Date.now()}.glb`;
+    const s3Url = await uploadToS3(buffer, fileName, "model/gltf-binary");
+    console.log("S3 URL:", s3Url);
+
     const modelDir = path.resolve(__dirname, "../../public/models/3dassets");
-    const filePath = path.join(modelDir, fileName);
+    if (!fs.existsSync(modelDir)) fs.mkdirSync(modelDir, { recursive: true });
+    fs.writeFileSync(path.join(modelDir, fileName), buffer);
 
-    // Ensure the directory exists
-    if (!fs.existsSync(modelDir)) {
-      fs.mkdirSync(modelDir, { recursive: true });
-    }
-
-    const writer = fs.createWriteStream(filePath);
-    response.data.pipe(writer);
-
-    writer.on("finish", () => {
-      console.log("Refined model URL sent successfully");
-      return res.status(200).json({
-        success: true,
-        // proxy_model_url: proxyUrl,
-        // preview_model_url: previewModelUrl,
-        refined_model_url: `/models/3dassets/${fileName}`,
-      });
-      // res
-      //   .status(200)
-      //   .json({ success: true, fileName, localUrl: `/models/3dassets/${fileName}` });
+    return res.status(200).json({
+      success: true,
+      s3_model_url: s3Url,
+      local_model_url: `/models/3dassets/${fileName}`,
     });
-
-    writer.on("error", (err) => {
-      console.error(err);
-      res.status(500).json({ error: "Failed to save the GLB file" });
-    });
-    // return res.status(200).json({
-    //   success: true,
-    //   // proxy_model_url: proxyUrl,
-    //   // preview_model_url: previewModelUrl,
-    //   refined_model_url: refinedModelUrl,
-    // });
   } catch (error) {
     console.error("imageToModel Error:", error.response?.data || error.message);
     return res.status(500).json({ error: "Internal Server Error" });
@@ -142,7 +147,6 @@ const proxyGLB = async (req, res) => {
 
     res.setHeader("Content-Type", "model/gltf-binary");
     res.setHeader("Cache-Control", "public, max-age=3600");
-    res.send(glbRes.data);
   } catch (err) {
     console.error("GLB proxy error:", err.message);
     res.status(500).json({ error: "Failed to fetch model" });
