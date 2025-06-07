@@ -3,13 +3,10 @@ const cors = require("cors");
 const bodyParser = require("body-parser");
 const errorHandler = require("./middlewares/errorHandler");
 const apiRouter = require("./routes/api");
-const config = require("./config");
+
 const app = express();
 
-// Middlewares
-app.use(bodyParser.json({ limit: "10mb" }));
-app.use(bodyParser.urlencoded({ extended: true, limit: "10mb" }));
-app.use(cors(config.corsOptions));
+// ✅ Define CORS options first
 const allowedOrigins = [
   "https://kokomatto.vercel.app",
   "https://staging.kokomatto.com",
@@ -28,9 +25,17 @@ const corsOptions = {
   credentials: true,
 };
 
+// ✅ Correct CORS usage
 app.use(cors(corsOptions));
+app.options("*", cors(corsOptions)); // preflight support
+
+// Middlewares
+app.use(bodyParser.json({ limit: "10mb" }));
+app.use(bodyParser.urlencoded({ extended: true, limit: "10mb" }));
+
 // Routes
 app.use("/api", apiRouter);
+
 // Health check
 app.get("/", (req, res) => {
   res.json({ status: "healthy", message: "Virtual Try-On API is running" });
